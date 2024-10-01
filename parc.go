@@ -57,6 +57,49 @@ func Str(s string) Parser {
 	return parser
 }
 
+func Letters() Parser {
+	return RegExp("^[A-Za-z]+", "letters")
+}
+
+func Digits() Parser {
+	return RegExp("^[0-9]+", "digits")
+}
+
+func RegExp(regexpStr, patternName string) Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		slicedInputString := parserState.InputString[parserState.Index:]
+
+		lettersRegexp := regexp.MustCompile(regexpStr)
+
+		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
+		fmt.Printf("Letters %s => %+v\n", slicedInputString, loc)
+
+		if loc == nil {
+			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
+		}
+
+		return updateParserState(parserState, parserState.Index+loc[1], []Result{Result(slicedInputString[loc[0]:loc[1]])})
+	}
+	parser := NewParser(parserFun)
+	return parser
+}
+
+// Map call the map function to the result and returns with the return value of this function
+func Map() {
+}
+
+// ErrorMap is like Map but it transforms the error value.
+// The function passed to ErrorMap gets an object the current error message (error),
+// the index (index) that parsing stopped at, and the data (data) from this parsing session.
+// Choice tries to execute the series of parser it got as a variadic parameter, and returns with the result of the first
+// parser that succeeds. If a parser returns with error, it tries to call the next one, until the last parsers.
+// In case none of them succeeds it does returns with error.
+func ErrorMap() {
+}
+
 // SequenceOf is a parser that executes a sequence of parsers against a parser state
 func SequenceOf(parsers ...Parser) Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -73,45 +116,6 @@ func SequenceOf(parsers ...Parser) Parser {
 	}
 	parser := NewParser(parserFun)
 	return parser
-}
-
-func Letters() Parser {
-	//lettersRegex := /^[A-Za-z]+/
-	parserFun := func(parserState ParserState) ParserState {
-		if parserState.IsError {
-			return parserState
-		}
-		slicedInputString := parserState.InputString[parserState.Index:]
-
-		lettersRegexp := regexp.MustCompile("^[A-Za-z]+")
-
-		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
-		fmt.Printf("Letters %s => %+v\n", slicedInputString, loc)
-
-		if loc == nil {
-			return updateParserError(parserState, fmt.Errorf("Could not match letters at index %d", parserState.Index))
-		}
-
-		return updateParserState(parserState, parserState.Index+loc[1], []Result{Result(slicedInputString[loc[0]:loc[1]])})
-	}
-	parser := NewParser(parserFun)
-	return parser
-}
-
-func Digits() {
-}
-
-// Map call the map function to the result and returns with the return value of this function
-func Map() {
-}
-
-// ErrorMap is like Map but it transforms the error value.
-// The function passed to ErrorMap gets an object the current error message (error),
-// the index (index) that parsing stopped at, and the data (data) from this parsing session.
-// Choice tries to execute the series of parser it got as a variadic parameter, and returns with the result of the first
-// parser that succeeds. If a parser returns with error, it tries to call the next one, until the last parsers.
-// In case none of them succeeds it does returns with error.
-func ErrorMap() {
 }
 
 func Choice() {
