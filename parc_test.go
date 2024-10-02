@@ -14,7 +14,7 @@ func TestStr(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 
-	results := Str(token).Run(input)
+	results := Str(token).Parse(input)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	//require.Equal(t, expectedResults, results)
@@ -30,7 +30,7 @@ func TestInteger(t *testing.T) {
 	expectedResult := []Result{Result(int(42))}
 	expectedError := error(nil)
 
-	results := Integer().Run(numInput)
+	results := Integer().Parse(numInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	require.Equal(t, expectedResult, results.Results)
@@ -40,7 +40,7 @@ func TestInteger(t *testing.T) {
 
 	textInput := "Hello World!"
 
-	results = Integer().Run(textInput)
+	results = Integer().Parse(textInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	//require.Equal(t, expectedResults, results)
@@ -55,7 +55,7 @@ func TestLetters(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 
-	results := Letters().Run(textInput)
+	results := Letters().Parse(textInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	//require.Equal(t, expectedResults, results)
@@ -64,7 +64,7 @@ func TestLetters(t *testing.T) {
 	require.False(t, results.IsError)
 
 	numInput := "42 is the number of the Universe!"
-	results = Letters().Run(numInput)
+	results = Letters().Parse(numInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	require.Equal(t, 0, results.Index)
@@ -78,7 +78,7 @@ func TestDigits(t *testing.T) {
 	expectedIndex := 2
 	expectedError := error(nil)
 
-	results := Digits().Run(numInput)
+	results := Digits().Parse(numInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	require.Equal(t, expectedIndex, results.Index)
@@ -87,7 +87,7 @@ func TestDigits(t *testing.T) {
 
 	textInput := "Hello World!"
 
-	results = Digits().Run(textInput)
+	results = Digits().Parse(textInput)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	//require.Equal(t, expectedResults, results)
@@ -107,7 +107,7 @@ func TestSequenceOf(t *testing.T) {
 		Str(token1),
 		Str(token2),
 	)
-	results := sequenceParser.Run(input)
+	results := sequenceParser.Parse(input)
 	fmt.Printf("\n  results: %+v\n", results)
 
 	require.Equal(t, expectedIndex, results.Index)
@@ -127,21 +127,21 @@ func TestChoice(t *testing.T) {
 		Letters(),
 		Digits(),
 	)
-	results := choiceParser.Run(inputWithText)
+	results := choiceParser.Parse(inputWithText)
 	fmt.Printf("\n  results with text: %+v\n", results)
 
 	require.Equal(t, expectedIndexWithText, results.Index)
 	require.Equal(t, expectedError, results.Err)
 	require.False(t, results.IsError)
 
-	results = choiceParser.Run(inputWithNumbers)
+	results = choiceParser.Parse(inputWithNumbers)
 	fmt.Printf("\n  results with numbers: %+v\n", results)
 
 	require.Equal(t, expectedIndexWithNumbers, results.Index)
 	require.Equal(t, expectedError, results.Err)
 	require.False(t, results.IsError)
 
-	results = choiceParser.Run(inputWithPunct)
+	results = choiceParser.Parse(inputWithPunct)
 	fmt.Printf("\n  results with numbers: %+v\n", results)
 
 	require.True(t, results.IsError)
@@ -167,7 +167,7 @@ func TestMap(t *testing.T) {
 		Map(Digits(), digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
-	).Run(input)
+	).Parse(input)
 	fmt.Printf("\n  results: %+v\n", results)
 	require.False(t, results.IsError)
 }
