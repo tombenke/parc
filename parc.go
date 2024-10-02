@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
-type Result string
+type Result any //string
 
 // Parser struct represent a parser
 type Parser struct {
@@ -65,6 +66,16 @@ func Digits() Parser {
 	return RegExp("^[0-9]+", "digits")
 }
 
+func Integer() Parser {
+	digitsToIntMapperFn := func(in []Result) Result {
+		strValue := in[0].(string)
+		intValue, _ := strconv.Atoi(strValue)
+		return Result(intValue)
+	}
+
+	return Map(Digits(), digitsToIntMapperFn)
+}
+
 func RegExp(regexpStr, patternName string) Parser {
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
@@ -75,7 +86,7 @@ func RegExp(regexpStr, patternName string) Parser {
 		lettersRegexp := regexp.MustCompile(regexpStr)
 
 		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
-		fmt.Printf("RegExp/%s '%s' => %+v\n", patternName, slicedInputString, loc)
+		fmt.Printf("RegExp/%s '%s' => %+v %d\n", patternName, slicedInputString, loc, len(loc))
 
 		if loc == nil {
 			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
@@ -88,7 +99,22 @@ func RegExp(regexpStr, patternName string) Parser {
 }
 
 // Map call the map function to the result and returns with the return value of this function
-func Map() {
+func Map(parser Parser, mapper func([]Result) Result) Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		nextState := parser.ParserFun(parserState)
+		if nextState.IsError {
+			return nextState
+		}
+
+		result := mapper(nextState.Results)
+
+		return updateParserState(parserState, nextState.Index, []Result{Result(result)})
+	}
+	mapParser := NewParser(parserFun)
+	return mapParser
 }
 
 // ErrorMap is like Map but it transforms the error value.
