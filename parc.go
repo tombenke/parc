@@ -75,7 +75,7 @@ func RegExp(regexpStr, patternName string) Parser {
 		lettersRegexp := regexp.MustCompile(regexpStr)
 
 		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
-		fmt.Printf("Letters %s => %+v\n", slicedInputString, loc)
+		fmt.Printf("RegExp/%s '%s' => %+v\n", patternName, slicedInputString, loc)
 
 		if loc == nil {
 			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
@@ -106,19 +106,33 @@ func SequenceOf(parsers ...Parser) Parser {
 		if parserState.IsError {
 			return parserState
 		}
-		////results := []Result{}
 		nextState := parserState
 		for _, parser := range parsers {
 			nextState = parser.ParserFun(nextState)
-			////results = slices.Concat(results, nextState.Results[len(nextState.Results)-1:])
 		}
-		return nextState ////updateParserResults(nextState, results)
+		return nextState
 	}
 	parser := NewParser(parserFun)
 	return parser
 }
 
-func Choice() {
+func Choice(parsers ...Parser) Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		//		if parserState.IsError {
+		//			return parserState
+		//		}
+		var nextState ParserState
+		for _, parser := range parsers {
+			nextState = parser.ParserFun(parserState)
+			fmt.Printf("<< Choice(parserState: %+v, nextState: %+v)\n", parserState, nextState)
+			if !nextState.IsError {
+				return nextState
+			}
+		}
+		return updateParserError(parserState, fmt.Errorf("choice: Unable to match with any parser at index %d", parserState.Index))
+	}
+	parser := NewParser(parserFun)
+	return parser
 }
 
 // Many tries to execute the parser given as a parameter, until it succeeds. Aggregate the results and return with it at the end.

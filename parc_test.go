@@ -87,3 +87,35 @@ func TestSequenceOf(t *testing.T) {
 	require.Equal(t, expectedError, results.Err)
 	require.False(t, results.IsError)
 }
+
+func TestChoice(t *testing.T) {
+	inputWithText := "Hello World"
+	inputWithNumbers := "1342 234 45"
+	inputWithPunct := "!., 1342 234 45"
+	expectedIndexWithText := 5
+	expectedIndexWithNumbers := 4
+	expectedError := error(nil)
+
+	choiceParser := Choice(
+		Letters(),
+		Digits(),
+	)
+	results := choiceParser.Run(inputWithText)
+	fmt.Printf("\n  results with text: %+v\n", results)
+
+	require.Equal(t, expectedIndexWithText, results.Index)
+	require.Equal(t, expectedError, results.Err)
+	require.False(t, results.IsError)
+
+	results = choiceParser.Run(inputWithNumbers)
+	fmt.Printf("\n  results with numbers: %+v\n", results)
+
+	require.Equal(t, expectedIndexWithNumbers, results.Index)
+	require.Equal(t, expectedError, results.Err)
+	require.False(t, results.IsError)
+
+	results = choiceParser.Run(inputWithPunct)
+	fmt.Printf("\n  results with numbers: %+v\n", results)
+
+	require.True(t, results.IsError)
+}
