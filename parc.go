@@ -118,9 +118,9 @@ func SequenceOf(parsers ...Parser) Parser {
 
 func Choice(parsers ...Parser) Parser {
 	parserFun := func(parserState ParserState) ParserState {
-		//		if parserState.IsError {
-		//			return parserState
-		//		}
+		if parserState.IsError {
+			return parserState
+		}
 		var nextState ParserState
 		for _, parser := range parsers {
 			nextState = parser.ParserFun(parserState)
