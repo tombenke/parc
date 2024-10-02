@@ -20,8 +20,8 @@ func NewParser(parserFun ParserFun) Parser {
 	return Parser{ParserFun: parserFun}
 }
 
-// Run runs the parser with the target string
-func (p Parser) Run(inputString string) ParserState {
+// Parse runs the parser with the target string
+func (p Parser) Parse(inputString string) ParserState {
 	// It runs a parser within an initial state on the target string
 	initialState := ParserState{InputString: inputString, Index: 0, Results: []Result{}, Err: nil, IsError: false}
 	return p.ParserFun(initialState)

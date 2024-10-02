@@ -12,7 +12,7 @@ func main() {
 }
 
 func RunHelloParser() {
-	results := parc.Str("Hello").Run("Hello World")
+	results := parc.Str("Hello").Parse("Hello World")
 	fmt.Printf("%+v\n", results)
 }
 
@@ -21,6 +21,6 @@ func RunSequenceParser() {
 		parc.Str("Hello "),
 		parc.Str("World"),
 	)
-	results := sequenceParser.Run("Hello World")
+	results := sequenceParser.Parse("Hello World")
 	fmt.Printf("%+v\n", results)
 }
