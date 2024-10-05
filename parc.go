@@ -15,7 +15,7 @@ type Parser struct {
 	ParserFun ParserFun
 }
 
-// NewParser is the consuctor of the Parser
+// NewParser is the constructor of the Parser
 func NewParser(parserFun ParserFun) Parser {
 	return Parser{ParserFun: parserFun}
 }
@@ -23,14 +23,14 @@ func NewParser(parserFun ParserFun) Parser {
 // Parse runs the parser with the target string
 func (p Parser) Parse(inputString string) ParserState {
 	// It runs a parser within an initial state on the target string
-	initialState := ParserState{InputString: inputString, Index: 0, Results: []Result{}, Err: nil, IsError: false}
+	initialState := ParserState{InputString: inputString, Index: 0, Results: Result(nil), Err: nil, IsError: false}
 	return p.ParserFun(initialState)
 }
 
 // ParserState represents an actual state of a parser
 type ParserState struct {
 	InputString string
-	Results     []Result
+	Results     Result
 	Index       int
 	Err         error
 	IsError     bool
@@ -44,12 +44,13 @@ type ParserFun func(parserState ParserState) ParserState
 // Str is a parser that matches a fixed string value with the target string
 func Str(s string) Parser {
 	parserFun := func(parserState ParserState) ParserState {
+		fmt.Printf("\n>> Str('%s', %+v)\n", s, parserState)
 		if parserState.IsError {
 			return parserState
 		}
 
 		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
-			return updateParserState(parserState, parserState.Index+len(s), []Result{Result(s)})
+			return updateParserState(parserState, parserState.Index+len(s), Result(s))
 		}
 
 		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
@@ -67,8 +68,9 @@ func Digits() Parser {
 }
 
 func Integer() Parser {
-	digitsToIntMapperFn := func(in []Result) Result {
-		strValue := in[0].(string)
+	digitsToIntMapperFn := func(in Result) Result {
+		fmt.Printf("\n>> Integer.digitsToIntMapperFn(%+v)\n", in)
+		strValue := in.(string)
 		intValue, _ := strconv.Atoi(strValue)
 		return Result(intValue)
 	}
@@ -78,6 +80,7 @@ func Integer() Parser {
 
 func RegExp(regexpStr, patternName string) Parser {
 	parserFun := func(parserState ParserState) ParserState {
+		fmt.Printf("\n>> RegExp.parserFun(%+v)\n", parserState)
 		if parserState.IsError {
 			return parserState
 		}
@@ -86,20 +89,20 @@ func RegExp(regexpStr, patternName string) Parser {
 		lettersRegexp := regexp.MustCompile(regexpStr)
 
 		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
-		fmt.Printf("RegExp/%s '%s' => %+v %d\n", patternName, slicedInputString, loc, len(loc))
+		fmt.Printf("   RegExp/%s '%s' => %+v\n", patternName, slicedInputString, loc)
 
 		if loc == nil {
 			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
 		}
 
-		return updateParserState(parserState, parserState.Index+loc[1], []Result{Result(slicedInputString[loc[0]:loc[1]])})
+		return updateParserState(parserState, parserState.Index+loc[1], Result(slicedInputString[loc[0]:loc[1]]))
 	}
 	parser := NewParser(parserFun)
 	return parser
 }
 
 // Map call the map function to the result and returns with the return value of this function
-func Map(parser Parser, mapper func([]Result) Result) Parser {
+func Map(parser Parser, mapper func(Result) Result) Parser {
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -111,7 +114,7 @@ func Map(parser Parser, mapper func([]Result) Result) Parser {
 
 		result := mapper(nextState.Results)
 
-		return updateParserState(parserState, nextState.Index, []Result{Result(result)})
+		return updateParserState(parserState, nextState.Index, Result(result))
 	}
 	mapParser := NewParser(parserFun)
 	return mapParser
@@ -129,14 +132,42 @@ func ErrorMap() {
 // SequenceOf is a parser that executes a sequence of parsers against a parser state
 func SequenceOf(parsers ...Parser) Parser {
 	parserFun := func(parserState ParserState) ParserState {
+		fmt.Printf("\n>> SequenceOf(%+v)\n", parserState)
 		if parserState.IsError {
+			fmt.Printf("<< SequenceOf() => %+v\n", parserState)
 			return parserState
 		}
+		results := make([]Result, 0, 10)
 		nextState := parserState
 		for _, parser := range parsers {
 			nextState = parser.ParserFun(nextState)
+			results = slices.Concat(results, []Result{Result(nextState.Results)})
 		}
-		return nextState
+		newState := updateParserState(nextState, nextState.Index, Result(results))
+		fmt.Printf("<< SequenceOf() => %+v\n", newState)
+		return newState
+	}
+	parser := NewParser(parserFun)
+	return parser
+}
+
+// SequenceOf is a parser that executes a sequence of parsers against a parser state
+func RefSequenceOf(parsers ...*Parser) Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		fmt.Printf("\n>> SequenceOf(%+v)\n", parserState)
+		if parserState.IsError {
+			fmt.Printf("<< SequenceOf() => %+v\n", parserState)
+			return parserState
+		}
+		results := make([]Result, 0, 10)
+		nextState := parserState
+		for _, parser := range parsers {
+			nextState = (*parser).ParserFun(nextState)
+			results = slices.Concat(results, []Result{Result(nextState.Results)})
+		}
+		newState := updateParserState(nextState, nextState.Index, Result(results))
+		fmt.Printf("<< SequenceOf() => %+v\n", newState)
+		return newState
 	}
 	parser := NewParser(parserFun)
 	return parser
@@ -144,16 +175,18 @@ func SequenceOf(parsers ...Parser) Parser {
 
 func Choice(parsers ...Parser) Parser {
 	parserFun := func(parserState ParserState) ParserState {
+		fmt.Printf("\n>> Choice(%+v)\n", parserState)
 		if parserState.IsError {
 			return parserState
 		}
 		var nextState ParserState
 		for _, parser := range parsers {
 			nextState = parser.ParserFun(parserState)
-			fmt.Printf("<< Choice(parserState: %+v, nextState: %+v)\n", parserState, nextState)
 			if !nextState.IsError {
+				fmt.Printf("<< Choice() => %+v\n", nextState)
 				return nextState
 			}
+			fmt.Printf("   Choice try next with : %+v\n", parserState)
 		}
 		return updateParserError(parserState, fmt.Errorf("choice: Unable to match with any parser at index %d", parserState.Index))
 	}
@@ -177,12 +210,12 @@ func Chain() {
 }
 
 // Returns with a new copy of state updated with the index and result values
-func updateParserState(state ParserState, index int, result []Result) ParserState {
-	fmt.Printf("\n\n>> updateParserState(%+v, %+v, %+v)\n", state, index, result)
+func updateParserState(state ParserState, index int, result Result) ParserState {
 	newState := state
 	newState.Index = index
-	newState.Results = slices.Concat(state.Results, result)
-	fmt.Printf("<< updateParserState(%+v, %+v, %+v) => %+v\n", state, index, result, newState)
+	//newState.Results = slices.Concat(state.Results, result)
+	newState.Results = result
+	fmt.Printf("   updateParserState(%+v, %+v, %+v)\n                  => %+v\n", state, index, result, newState)
 	return newState
 }
 
@@ -197,4 +230,13 @@ func updateParserError(state ParserState, errorMsg error) ParserState {
 	state.IsError = true
 	state.Err = errorMsg
 	return state
+}
+
+func Lazy(parserThunk Parser) Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		nextState := parserThunk.ParserFun(parserState)
+		return nextState
+	}
+	lazyParser := NewParser(parserFun)
+	return lazyParser
 }

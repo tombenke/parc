@@ -1,0 +1,12 @@
+@startebnf
+title micro-language example
+
+expr = number | operation;
+
+operation = '(', operator, ' ', expr, ' ', expr, ')';
+
+operator = '+' | '-' | '*' | '/';
+
+number = '/^[0-9]+/';
+
+@endebnf
