@@ -8,10 +8,15 @@ import (
 	"strings"
 )
 
+// Result represents the type of the result that is produced by calling the parser function of a parser.
+// It is stored in the parser state the parser's parser function returns with.
 type Result any
 
 var (
+	// parseDepth defines the actual call-depth of a specific parser during the parsing
 	parseDepth = 0
+
+	// debugLevel sets the actual debug-level. 0=NO-DEBUG, 1=minimum, 2=medium, 3=detailed
 	debugLevel = 0
 )
 
@@ -71,6 +76,7 @@ type ParserState struct {
 	IsError     bool
 }
 
+// String returns with the string fromat of the parser state
 func (ps ParserState) String() string {
 	return fmt.Sprintf("InputString: '%s', Results: %+v, Index: %d, Err: %+v, IsError: %+v", ps.InputString, ps.Results, ps.Index, ps.Err, ps.IsError)
 }
@@ -100,14 +106,17 @@ func Str(s string) *Parser {
 	return parser
 }
 
+// Letters is a parser that matches one or more letter characters with the target string
 func Letters() *Parser {
 	return RegExp("Letters", "^[A-Za-z]+")
 }
 
+// Digits is a parser that matches one or more digit characters with the target string
 func Digits() *Parser {
 	return RegExp("Digits", "^[0-9]+")
 }
 
+// Integer is a parser that matches one or more digit characters with the target string and returns with an int value
 func Integer() *Parser {
 	digitsToIntMapperFn := func(in Result) Result {
 		strValue := in.(string)

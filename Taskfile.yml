@@ -36,6 +36,7 @@ tasks:
     desc: Install dependencies
     cmds:
       - sh -c "$(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh)" -- -b $(go env GOPATH)/bin v1.54.1
+      - go install golang.org/x/pkgsite/cmd/pkgsite@latest
       - go mod tidy
       - task: install-git-hooks
 
@@ -91,8 +92,6 @@ tasks:
       - go tool cover -html=c.out
 
   docs:
-    desc: Generate the documentation
+    desc: Show API docs
     cmds:
-
-      # Generate the UML diagrams
-      - echo "TODO"
+      - pkgsite -http :8080 & open http://localhost:8080/github.com/tombenke/parc
