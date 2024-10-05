@@ -18,6 +18,7 @@ func RunHelloParser() {
 
 func RunSequenceParser() {
 	sequenceParser := parc.SequenceOf(
+
 		parc.Str("Hello "),
 		parc.Str("World"),
 	)

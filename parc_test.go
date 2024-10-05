@@ -1,7 +1,6 @@
 package parc
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
@@ -13,14 +12,11 @@ func TestStr(t *testing.T) {
 	token := "Hello"
 	expectedIndex := 5
 	expectedError := error(nil)
+	expectedResults := token
+	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
 
-	results := Str(token).Parse(input)
-	fmt.Printf("\n  results: %+v\n", results)
-
-	//require.Equal(t, expectedResults, results)
-	require.Equal(t, expectedIndex, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	newState := Str(token).Parse(input)
+	require.Equal(t, expectedState, newState)
 }
 
 func TestInteger(t *testing.T) {
@@ -30,23 +26,19 @@ func TestInteger(t *testing.T) {
 	expectedResult := Result(int(42))
 	expectedError := error(nil)
 
-	results := Integer().Parse(numInput)
-	fmt.Printf("\n  results: %+v\n", results)
+	newState := Integer().Parse(numInput)
 
-	require.Equal(t, expectedResult, results.Results)
-	require.Equal(t, expectedIndex, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	require.Equal(t, expectedResult, newState.Results)
+	require.Equal(t, expectedIndex, newState.Index)
+	require.Equal(t, expectedError, newState.Err)
+	require.False(t, newState.IsError)
 
 	textInput := "Hello World!"
 
-	results = Integer().Parse(textInput)
-	fmt.Printf("\n  results: %+v\n", results)
+	newState = Integer().Parse(textInput)
 
-	//require.Equal(t, expectedResults, results)
-	require.Equal(t, 0, results.Index)
-	//require.Equal(t, expectedError, results.Err)
-	require.True(t, results.IsError)
+	require.Equal(t, 0, newState.Index)
+	require.True(t, newState.IsError)
 }
 
 func TestLetters(t *testing.T) {
@@ -54,22 +46,16 @@ func TestLetters(t *testing.T) {
 	textInput := "Hello World!"
 	expectedIndex := 5
 	expectedError := error(nil)
+	expectedResults := "Hello"
+	expectedState := ParserState{InputString: textInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
 
-	results := Letters().Parse(textInput)
-	fmt.Printf("\n  results: %+v\n", results)
-
-	//require.Equal(t, expectedResults, results)
-	require.Equal(t, expectedIndex, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	newState := Letters().Parse(textInput)
+	require.Equal(t, expectedState, newState)
 
 	numInput := "42 is the number of the Universe!"
-	results = Letters().Parse(numInput)
-	fmt.Printf("\n  results: %+v\n", results)
-
-	require.Equal(t, 0, results.Index)
-	//require.Equal(t, expectedError, results.Err)
-	require.True(t, results.IsError)
+	newState = Letters().Parse(numInput)
+	require.Equal(t, 0, newState.Index)
+	require.True(t, newState.IsError)
 }
 
 func TestDigits(t *testing.T) {
@@ -77,42 +63,37 @@ func TestDigits(t *testing.T) {
 	numInput := "42 is the number of the Universe!"
 	expectedIndex := 2
 	expectedError := error(nil)
+	expectedResults := "42"
+	expectedState := ParserState{InputString: numInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
 
-	results := Digits().Parse(numInput)
-	fmt.Printf("\n  results: %+v\n", results)
+	newState := Digits().Parse(numInput)
 
-	require.Equal(t, expectedIndex, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	require.Equal(t, expectedState, newState)
 
 	textInput := "Hello World!"
 
-	results = Digits().Parse(textInput)
-	fmt.Printf("\n  results: %+v\n", results)
-
-	//require.Equal(t, expectedResults, results)
-	require.Equal(t, 0, results.Index)
-	//require.Equal(t, expectedError, results.Err)
-	require.True(t, results.IsError)
+	newState = Digits().Parse(textInput)
+	require.Equal(t, 0, newState.Index)
+	require.True(t, newState.IsError)
 }
 
 func TestSequenceOf(t *testing.T) {
 	input := "Hello World"
-	token1 := "Hello "
-	token2 := "World"
+	token1 := "Hello"
+	token2 := " "
+	token3 := "World"
 	expectedIndex := 11
 	expectedError := error(nil)
+	expectedResults := []Result{token1, token2, token3}
+	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
 
 	sequenceParser := SequenceOf(
 		Str(token1),
 		Str(token2),
+		Str(token3),
 	)
-	results := sequenceParser.Parse(input)
-	fmt.Printf("\n  results: %+v\n", results)
-
-	require.Equal(t, expectedIndex, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	newState := sequenceParser.Parse(input)
+	require.Equal(t, expectedState, newState)
 }
 
 func TestChoice(t *testing.T) {
@@ -127,24 +108,21 @@ func TestChoice(t *testing.T) {
 		Letters(),
 		Digits(),
 	)
-	results := choiceParser.Parse(inputWithText)
-	fmt.Printf("\n  results with text: %+v\n", results)
+	newState := choiceParser.Parse(inputWithText)
 
-	require.Equal(t, expectedIndexWithText, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	require.Equal(t, expectedIndexWithText, newState.Index)
+	require.Equal(t, expectedError, newState.Err)
+	require.False(t, newState.IsError)
 
-	results = choiceParser.Parse(inputWithNumbers)
-	fmt.Printf("\n  results with numbers: %+v\n", results)
+	newState = choiceParser.Parse(inputWithNumbers)
 
-	require.Equal(t, expectedIndexWithNumbers, results.Index)
-	require.Equal(t, expectedError, results.Err)
-	require.False(t, results.IsError)
+	require.Equal(t, expectedIndexWithNumbers, newState.Index)
+	require.Equal(t, expectedError, newState.Err)
+	require.False(t, newState.IsError)
 
-	results = choiceParser.Parse(inputWithPunct)
-	fmt.Printf("\n  results with numbers: %+v\n", results)
+	newState = choiceParser.Parse(inputWithPunct)
 
-	require.True(t, results.IsError)
+	require.True(t, newState.IsError)
 }
 
 func TestMap(t *testing.T) {
@@ -163,11 +141,11 @@ func TestMap(t *testing.T) {
 		return Result(result)
 	}
 
-	results := SequenceOf(
+	newState := SequenceOf(
 		Map(Digits(), digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
 	).Parse(input)
-	fmt.Printf("\n  results: %+v\n", results)
-	require.False(t, results.IsError)
+
+	require.False(t, newState.IsError)
 }
