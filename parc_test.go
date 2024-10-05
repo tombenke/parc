@@ -27,7 +27,7 @@ func TestInteger(t *testing.T) {
 
 	numInput := "42"
 	expectedIndex := 2
-	expectedResult := []Result{Result(int(42))}
+	expectedResult := Result(int(42))
 	expectedError := error(nil)
 
 	results := Integer().Parse(numInput)
@@ -153,8 +153,8 @@ func TestMap(t *testing.T) {
 		Value int
 	}
 	input := "42 Hello"
-	digitsToIntMapperFn := func(in []Result) Result {
-		strValue := in[0].(string)
+	digitsToIntMapperFn := func(in Result) Result {
+		strValue := in.(string)
 		intValue, _ := strconv.Atoi(strValue)
 		result := MapResult{
 			Tag:   "INTEGER",
