@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	parc.Debug(1)
 	input := "(+ (* 10 2) (- (/ 50 3) 2))"
 	//input := "(+ 1 2)"
 	fmt.Printf("%s => interpreter => %d\n", input, interpreter(input))
@@ -70,10 +71,9 @@ func buildParser() parc.Parser {
 }
 
 func evaluate(node parc.Result) int {
-	fmt.Printf("\nevaluateParseResults: %+v\n\n", node)
+	////fmt.Printf("\nevaluateParseResults: %+v\n\n", node)
 	switch n := node.(type) {
 	case Operation:
-		fmt.Printf("%s\n", n.Tag)
 		switch n.Operation {
 		case "+":
 			return evaluate(n.Operand_A) + evaluate(n.Operand_B)
@@ -85,7 +85,6 @@ func evaluate(node parc.Result) int {
 			return evaluate(n.Operand_A) * evaluate(n.Operand_B)
 		}
 	case Operand:
-		fmt.Printf("%s\n", n.Tag)
 		return n.Value
 	}
 	return 0
