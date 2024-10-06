@@ -86,29 +86,54 @@ func (ps ParserState) String() string {
 // and returns with a new ParserState as an output
 type ParserFun func(parserState ParserState) ParserState
 
-// Str is a parser that matches a fixed string value with the target string
-func Str(s string) *Parser {
+// Char is a parser that matches a fixed, single character value with the target string exactly one time
+func Char(s string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
-		newState := parserState
 		if parserState.IsError {
-			return newState
+			return parserState
+		}
+		if len(s) != 1 {
+			return updateParserError(parserState, fmt.Errorf("Wrong argument for Char('%s'). It must be a single character", s))
 		}
 
 		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
-			newState = updateParserState(parserState, parserState.Index+len(s), Result(s))
-			return newState
+			return updateParserState(parserState, parserState.Index+len(s), Result(s))
 		}
 
-		newState = updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
-		return newState
+		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
 	}
-	parser := NewParser("Str('"+s+"')", parserFun)
-	return parser
+	return NewParser("Char('"+s+"')", parserFun)
+}
+
+// Str is a parser that matches a fixed string value with the target string exactly one time
+func Str(s string) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
+			return updateParserState(parserState, parserState.Index+len(s), Result(s))
+		}
+
+		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
+	}
+	return NewParser("Str('"+s+"')", parserFun)
+}
+
+// Letters is a parser that matches a single letter character with the target string
+func Letter() *Parser {
+	return RegExp("Letter", "^[A-Za-z]")
 }
 
 // Letters is a parser that matches one or more letter characters with the target string
 func Letters() *Parser {
 	return RegExp("Letters", "^[A-Za-z]+")
+}
+
+// Digit is a parser that matches a singl digit character with the target string
+func Digit() *Parser {
+	return RegExp("Digit", "^[0-9]")
 }
 
 // Digits is a parser that matches one or more digit characters with the target string
@@ -127,11 +152,12 @@ func Integer() *Parser {
 	return Map(Digits(), digitsToIntMapperFn)
 }
 
+// RexExp is a parser that matches the regexpStr regular expression with the target string and returns with the first match.
+// The patternName parameter defines a name for the expression for debugging purposes
 func RegExp(patternName, regexpStr string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
-		newState := parserState
 		if parserState.IsError {
-			return newState
+			return parserState
 		}
 		slicedInputString := parserState.InputString[parserState.Index:]
 
@@ -140,38 +166,31 @@ func RegExp(patternName, regexpStr string) *Parser {
 		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
 
 		if loc == nil {
-			newState = updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
-			return newState
+			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
 		}
 
-		newState = updateParserState(parserState, parserState.Index+loc[1], Result(slicedInputString[loc[0]:loc[1]]))
-		return newState
+		return updateParserState(parserState, parserState.Index+loc[1], Result(slicedInputString[loc[0]:loc[1]]))
 	}
-	parser := NewParser(fmt.Sprintf("Regexp('%s', /%s/)", patternName, regexpStr), parserFun)
-
-	return parser
+	return NewParser(fmt.Sprintf("Regexp('%s', /%s/)", patternName, regexpStr), parserFun)
 }
 
 // Map call the map function to the result and returns with the return value of this function
 func Map(parser *Parser, mapper func(Result) Result) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
-		newState := parserState
 		if parserState.IsError {
-			return newState
+			return parserState
 		}
-		newState = parser.ParserFun(parserState)
+		newState := parser.ParserFun(parserState)
 		if newState.IsError {
 			return newState
 		}
 
 		result := mapper(newState.Results)
 
-		newState = updateParserState(newState, newState.Index, Result(result))
-		return newState
+		return updateParserState(newState, newState.Index, Result(result))
 	}
 
-	mapParser := NewParser("Map("+parser.Name()+")", parserFun)
-	return mapParser
+	return NewParser("Map("+parser.Name()+")", parserFun)
 }
 
 // ErrorMap is like Map but it transforms the error value.
@@ -196,11 +215,9 @@ func SequenceOf(parsers ...*Parser) *Parser {
 			nextState = (*parser).ParserFun(nextState)
 			results = slices.Concat(results, []Result{Result(nextState.Results)})
 		}
-		newState := updateParserState(nextState, nextState.Index, Result(results))
-		return newState
+		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	parser := NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
-	return parser
+	return NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
 }
 
 // getParserNames returns a string of the comma separated list of parser names
@@ -234,8 +251,7 @@ func Choice(parsers ...*Parser) *Parser {
 		}
 		return updateParserError(parserState, fmt.Errorf("choice: Unable to match with any parser at index %d", parserState.Index))
 	}
-	parser := NewParser("Choice("+getParserNames(parsers...)+")", parserFun)
-	return parser
+	return NewParser("Choice("+getParserNames(parsers...)+")", parserFun)
 }
 
 // Many tries to execute the parser given as a parameter, until it succeeds. Aggregate the results and return with it at the end.
@@ -253,9 +269,40 @@ func Choice(parsers ...*Parser) *Parser {
 // Chain takes a function which receieves the last matched value and should return a parser.
 // That parser is then used to parse the following input, forming a chain of parsers based on previous input.
 // Chain is the fundamental way of creating contextual parsers.
-// TODO
-// func Chain() {
-// }
+func Chain(parser *Parser, parserMakerFn func(Result) *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		newState := parser.ParserFun(parserState)
+		if newState.IsError {
+			return newState
+		}
+
+		nextParser := parserMakerFn(newState.Results)
+		result := nextParser.ParserFun(newState)
+
+		return updateParserState(newState, newState.Index, Result(result))
+	}
+
+	return NewParser("Chain("+parser.Name()+")", parserFun)
+}
+
+// Between is a utility function that takes two parsers as arguments that defines a starting and ending pattern of a content,
+// and returns a function that takes a content parser as argument.
+// Using the resulted parser will provide a result that is the outcome of the content parser.
+func Between(leftParser, rightParser *Parser) func(*Parser) *Parser {
+	return func(contentParser *Parser) *Parser {
+		return Map(SequenceOf(
+			leftParser,
+			contentParser,
+			rightParser,
+		), func(result Result) Result {
+			arrResults := result.([]Result)
+			return arrResults[1]
+		})
+	}
+}
 
 // TODO
 // func EndOfInput *Parser {}

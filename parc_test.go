@@ -149,3 +149,45 @@ func TestMap(t *testing.T) {
 
 	require.False(t, newState.IsError)
 }
+
+func TestBetween(t *testing.T) {
+	Debug(1)
+	input := "(42)"
+	expectedResult := int(42)
+
+	betweenParser := Between(Char("("), Char(")"))(Integer())
+	newState := betweenParser.Parse(input)
+	require.Equal(t, expectedResult, newState.Results)
+	require.False(t, newState.IsError)
+}
+
+func TestChain(t *testing.T) {
+	Debug(2)
+	//stringInput := "string:Hello"
+	//numberInput := "number:42"
+	dicerollInput := "diceroll:2d8"
+
+	stringParser := Letters()
+	numberParser := Digits()
+	dicerollParser := SequenceOf(
+		Integer(),
+		Char("d"),
+		Integer(),
+	)
+	parser := Chain(
+		SequenceOf(Letters(), Char(":")),
+		func(result Result) *Parser {
+			arr := result.([]Result)
+			leftValue := arr[0].(string)
+			switch leftValue {
+			case "string":
+				return stringParser
+			case "number":
+				return numberParser
+			default:
+				return dicerollParser
+			}
+		})
+	newState := parser.Parse(dicerollInput)
+	require.False(t, newState.IsError)
+}
