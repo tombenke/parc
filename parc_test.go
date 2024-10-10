@@ -6,6 +6,52 @@ import (
 	"testing"
 )
 
+func init() {
+	Debug(2)
+}
+
+func TestStartOfInput(t *testing.T) {
+	newState := StartOfInput().Parse("")
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(
+		StartOfInput(),
+		Str("Hello"),
+		Str(" "),
+		Str("World"),
+	).Parse("Hello World")
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(
+		Str("Hello"),
+		StartOfInput(), // Not at the start
+		Str(" "),
+		Str("World"),
+	).Parse("Hello World")
+	require.True(t, newState.IsError)
+}
+
+func TestEndOfInput(t *testing.T) {
+	newState := EndOfInput().Parse("")
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(
+		Str("Hello"),
+		Str(" "),
+		Str("World"),
+		EndOfInput(),
+	).Parse("Hello World")
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(
+		Str("Hello"),
+		EndOfInput(), // Not at the end
+		Str(" "),
+		Str("World"),
+	).Parse("Hello World")
+	require.True(t, newState.IsError)
+}
+
 func TestStr(t *testing.T) {
 
 	input := "Hello World"
@@ -17,6 +63,10 @@ func TestStr(t *testing.T) {
 
 	newState := Str(token).Parse(input)
 	require.Equal(t, expectedState, newState)
+
+	// Try with an empty input
+	newState = Str(token).Parse("")
+	require.True(t, newState.IsError)
 }
 
 func TestInteger(t *testing.T) {
@@ -94,6 +144,66 @@ func TestSequenceOf(t *testing.T) {
 	)
 	newState := sequenceParser.Parse(input)
 	require.Equal(t, expectedState, newState)
+
+	wrongSequenceParser := SequenceOf(
+		Str(token1),
+		Str(token2),
+		Str(token3),
+		Str(token3), // Try one more at the end of the input
+	)
+	newState = wrongSequenceParser.Parse(input)
+	require.True(t, newState.IsError)
+}
+
+func TestZeroOrMore(t *testing.T) {
+	input := "Hello Hello Hello Hello Hello "
+	tokenZero := "XXX "
+	tokenMore := "Hello "
+	expectedIndex := 30
+	expectedError := error(nil)
+	expectedResultsZero := []Result{}
+	expectedStateZero := ParserState{InputString: input, Results: expectedResultsZero, Index: 0, Err: expectedError, IsError: false}
+	expectedResultsMore := []Result{tokenMore, tokenMore, tokenMore, tokenMore, tokenMore}
+	expectedStateMore := ParserState{InputString: input, Results: expectedResultsMore, Index: expectedIndex, Err: expectedError, IsError: false}
+
+	zeroOrMoreParser := ZeroOrMore(Str(tokenZero))
+
+	newState := zeroOrMoreParser.Parse(input)
+	require.Equal(t, expectedStateZero, newState)
+
+	zeroOrMoreParser = ZeroOrMore(Str(tokenMore))
+
+	newState = zeroOrMoreParser.Parse(input)
+	require.Equal(t, expectedStateMore, newState)
+}
+
+func TestOneOrMore(t *testing.T) {
+	input := "Hello Hello "
+	tokenOne := "Hello Hello "
+	tokenMore := "Hello "
+	tokenNone := "XXX "
+	expectedIndex := 12
+	expectedError := error(nil)
+	expectedResultsOne := []Result{tokenOne}
+	expectedStateOne := ParserState{InputString: input, Results: expectedResultsOne, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedResultsMore := []Result{tokenMore, tokenMore}
+	expectedStateMore := ParserState{InputString: input, Results: expectedResultsMore, Index: expectedIndex, Err: expectedError, IsError: false}
+
+	oneOrMoreParser := OneOrMore(Str(tokenOne))
+
+	newState := oneOrMoreParser.Parse(input)
+	require.Equal(t, expectedStateOne, newState)
+
+	oneOrMoreParser = OneOrMore(Str(tokenMore))
+
+	newState = oneOrMoreParser.Parse(input)
+	require.Equal(t, expectedStateMore, newState)
+
+	oneOrMoreParser = OneOrMore(Str(tokenNone))
+
+	newState = oneOrMoreParser.Parse(input)
+	require.Equal(t, Result(nil), newState.Results)
+	require.True(t, newState.IsError)
 }
 
 func TestChoice(t *testing.T) {
@@ -150,8 +260,32 @@ func TestMap(t *testing.T) {
 	require.False(t, newState.IsError)
 }
 
+func TestParser_Map(t *testing.T) {
+	type MapResult struct {
+		Tag   string
+		Value int
+	}
+	input := "42 Hello"
+	digitsToIntMapperFn := func(in Result) Result {
+		strValue := in.(string)
+		intValue, _ := strconv.Atoi(strValue)
+		result := MapResult{
+			Tag:   "INTEGER",
+			Value: intValue,
+		}
+		return Result(result)
+	}
+
+	newState := SequenceOf(
+		Digits().Map(digitsToIntMapperFn),
+		Str(" "),
+		Str("Hello"),
+	).Parse(input)
+
+	require.False(t, newState.IsError)
+}
+
 func TestBetween(t *testing.T) {
-	Debug(1)
 	input := "(42)"
 	expectedResult := int(42)
 
@@ -162,7 +296,6 @@ func TestBetween(t *testing.T) {
 }
 
 func TestChain(t *testing.T) {
-	Debug(2)
 	//stringInput := "string:Hello"
 	//numberInput := "number:42"
 	dicerollInput := "diceroll:2d8"
@@ -176,6 +309,35 @@ func TestChain(t *testing.T) {
 	)
 	parser := Chain(
 		SequenceOf(Letters(), Char(":")),
+		func(result Result) *Parser {
+			arr := result.([]Result)
+			leftValue := arr[0].(string)
+			switch leftValue {
+			case "string":
+				return stringParser
+			case "number":
+				return numberParser
+			default:
+				return dicerollParser
+			}
+		})
+	newState := parser.Parse(dicerollInput)
+	require.False(t, newState.IsError)
+}
+
+func TestParser_Chain(t *testing.T) {
+	//stringInput := "string:Hello"
+	//numberInput := "number:42"
+	dicerollInput := "diceroll:2d8"
+
+	stringParser := Letters()
+	numberParser := Digits()
+	dicerollParser := SequenceOf(
+		Integer(),
+		Char("d"),
+		Integer(),
+	)
+	parser := SequenceOf(Letters(), Char(":")).Chain(
 		func(result Result) *Parser {
 			arr := result.([]Result)
 			leftValue := arr[0].(string)

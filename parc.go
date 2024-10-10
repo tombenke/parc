@@ -55,6 +55,11 @@ func NewParser(parserName string, parserFun ParserFun) *Parser {
 	return &Parser{name: parserName, ParserFun: wrapperFn}
 }
 
+// Name returns the name of the parser
+func (p *Parser) Name() string {
+	return p.name
+}
+
 // Parse runs the parser with the target string
 func (p *Parser) Parse(inputString string) ParserState {
 	// It runs a parser within an initial state on the target string
@@ -62,9 +67,106 @@ func (p *Parser) Parse(inputString string) ParserState {
 	return p.ParserFun(initialState)
 }
 
-// Name returns the name of the parser
-func (p *Parser) Name() string {
-	return p.name
+// Map call the map function to the result and returns with the return value of this function
+func (p *Parser) Map(mapper func(Result) Result) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		newState := p.ParserFun(parserState)
+		if newState.IsError {
+			return newState
+		}
+
+		result := mapper(newState.Results)
+
+		return updateParserState(newState, newState.Index, Result(result))
+	}
+
+	return NewParser("Map("+p.Name()+")", parserFun)
+}
+
+// Chain takes a function which receieves the last matched value and should return a parser.
+// That parser is then used to parse the following input, forming a chain of parsers based on previous input.
+// Chain is the fundamental way of creating contextual parsers.
+func (p *Parser) Chain(parserMakerFn func(Result) *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		newState := p.ParserFun(parserState)
+		if newState.IsError {
+			return newState
+		}
+
+		nextParser := parserMakerFn(newState.Results)
+		result := nextParser.ParserFun(newState)
+
+		return updateParserState(newState, newState.Index, Result(result))
+	}
+
+	return NewParser("Chain("+p.Name()+")", parserFun)
+}
+
+// Map call the map function to the result and returns with the return value of this function
+func Map(parser *Parser, mapper func(Result) Result) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		newState := parser.ParserFun(parserState)
+		if newState.IsError {
+			return newState
+		}
+
+		result := mapper(newState.Results)
+
+		return updateParserState(newState, newState.Index, Result(result))
+	}
+
+	return NewParser("Map("+parser.Name()+")", parserFun)
+}
+
+// Chain takes a function which receieves the last matched value and should return a parser.
+// That parser is then used to parse the following input, forming a chain of parsers based on previous input.
+// Chain is the fundamental way of creating contextual parsers.
+func Chain(parser *Parser, parserMakerFn func(Result) *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		newState := parser.ParserFun(parserState)
+		if newState.IsError {
+			return newState
+		}
+
+		nextParser := parserMakerFn(newState.Results)
+		result := nextParser.ParserFun(newState)
+
+		return updateParserState(newState, newState.Index, Result(result))
+	}
+
+	return NewParser("Chain("+parser.Name()+")", parserFun)
+}
+
+// ErrorMap is like Map but it transforms the error value.
+// The function passed to ErrorMap gets an object the current error message (error),
+// the index (index) that parsing stopped at, and the data (data) from this parsing session.
+// Choice tries to execute the series of parser it got as a variadic parameter, and returns with the result of the first
+// parser that succeeds. If a parser returns with error, it tries to call the next one, until the last parsers.
+// In case none of them succeeds it does returns with error.
+func (p *Parser) ErrorMap(mapperFn func(err error, index int) error) *Parser {
+
+	parserFun := func(parserState ParserState) ParserState {
+		newState := p.ParserFun(parserState)
+		if !newState.IsError {
+			return newState
+		}
+
+		return updateParserError(newState, mapperFn(newState.Err, newState.Index))
+	}
+
+	return NewParser("ErrorMap("+p.Name()+")", parserFun)
 }
 
 // ParserState represents an actual state of a parser
@@ -105,6 +207,41 @@ func Char(s string) *Parser {
 	return NewParser("Char('"+s+"')", parserFun)
 }
 
+// StartOfInput is a parser that only succeeds when the parser is at the beginning of the input.
+func StartOfInput() *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		if parserState.Index > 0 {
+			return updateParserError(
+				parserState,
+				fmt.Errorf("StartOfInput: expect start of input but index position is %d", parserState.Index))
+		}
+		return parserState
+	}
+	return NewParser("StartOfInput()", parserFun)
+}
+
+// EndOfInput is a parser that only succeeds when there is no more input to be parsed.
+func EndOfInput() *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		inputLength := len(parserState.InputString)
+		if parserState.Index != inputLength {
+			return updateParserError(
+				parserState,
+				fmt.Errorf("EndOfInput: expect end of input but index position is %d to the end", parserState.Index-inputLength))
+		}
+		return parserState
+	}
+	return NewParser("EndOfInput()", parserFun)
+}
+
 // Str is a parser that matches a fixed string value with the target string exactly one time
 func Str(s string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -112,11 +249,15 @@ func Str(s string) *Parser {
 			return parserState
 		}
 
+		if len(parserState.InputString[parserState.Index:]) == 0 {
+			return updateParserError(parserState, fmt.Errorf("Str: tried to match '%s', but got Unexpected end of input.", s))
+		}
+
 		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
 			return updateParserState(parserState, parserState.Index+len(s), Result(s))
 		}
 
-		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
+		return updateParserError(parserState, fmt.Errorf("Str: could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
 	}
 	return NewParser("Str('"+s+"')", parserFun)
 }
@@ -149,7 +290,7 @@ func Integer() *Parser {
 		return Result(intValue)
 	}
 
-	return Map(Digits(), digitsToIntMapperFn)
+	return Digits().Map(digitsToIntMapperFn)
 }
 
 // RexExp is a parser that matches the regexpStr regular expression with the target string and returns with the first match.
@@ -160,48 +301,22 @@ func RegExp(patternName, regexpStr string) *Parser {
 			return parserState
 		}
 		slicedInputString := parserState.InputString[parserState.Index:]
+		if len(slicedInputString) == 0 {
+			return updateParserError(parserState, fmt.Errorf("RegExp: tried to match /%s/, but got Unexpected end of input.", regexpStr))
+		}
 
 		lettersRegexp := regexp.MustCompile(regexpStr)
 
 		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
 
 		if loc == nil {
-			return updateParserError(parserState, fmt.Errorf("Could not match %s at index %d", patternName, parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("RegExp: could not match %s at index %d", patternName, parserState.Index))
 		}
 
 		return updateParserState(parserState, parserState.Index+loc[1], Result(slicedInputString[loc[0]:loc[1]]))
 	}
-	return NewParser(fmt.Sprintf("Regexp('%s', /%s/)", patternName, regexpStr), parserFun)
+	return NewParser(fmt.Sprintf("RegExp('%s', /%s/)", patternName, regexpStr), parserFun)
 }
-
-// Map call the map function to the result and returns with the return value of this function
-func Map(parser *Parser, mapper func(Result) Result) *Parser {
-	parserFun := func(parserState ParserState) ParserState {
-		if parserState.IsError {
-			return parserState
-		}
-		newState := parser.ParserFun(parserState)
-		if newState.IsError {
-			return newState
-		}
-
-		result := mapper(newState.Results)
-
-		return updateParserState(newState, newState.Index, Result(result))
-	}
-
-	return NewParser("Map("+parser.Name()+")", parserFun)
-}
-
-// ErrorMap is like Map but it transforms the error value.
-// The function passed to ErrorMap gets an object the current error message (error),
-// the index (index) that parsing stopped at, and the data (data) from this parsing session.
-// Choice tries to execute the series of parser it got as a variadic parameter, and returns with the result of the first
-// parser that succeeds. If a parser returns with error, it tries to call the next one, until the last parsers.
-// In case none of them succeeds it does returns with error.
-// TODO
-// func ErrorMap() {
-// }
 
 // SequenceOf is a parser that executes a sequence of parsers against a parser state
 func SequenceOf(parsers ...*Parser) *Parser {
@@ -220,19 +335,62 @@ func SequenceOf(parsers ...*Parser) *Parser {
 	return NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
 }
 
-// getParserNames returns a string of the comma separated list of parser names
-func getParserNames(parsers ...*Parser) string {
-	parserNames := ""
+// ZeroOrMore tries to execute the parser given as a parameter, until it succeeds.
+// Aggregate the results and returns with it at the end.
+// It never returns error either it could run the parser any times without errors or never.
+func ZeroOrMore(parser *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
 
-	if debugLevel > 1 {
-		for i, parser := range parsers {
-			parserNames = parserNames + parser.Name()
-			if i < len(parsers)-1 {
-				parserNames = parserNames + ", "
+		results := make([]Result, 0, 10)
+		nextState := parserState
+
+		for {
+			testState := parser.ParserFun(nextState)
+			if testState.IsError {
+				break
+			} else {
+				results = slices.Concat(results, []Result{Result(testState.Results)})
+				nextState = testState
 			}
 		}
+		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return parserNames
+	return NewParser("ZeroOrMore("+parser.Name()+")", parserFun)
+}
+
+// OneOrMore is similar to the ZeroOrMore parser,
+// but it must be able to run the parser successfuly at least once, otherwise it return with error.
+// It executes the parser given as a parameter, until it succeeds,
+// meanwhile it aggregate the results then returns with it at the end.
+func OneOrMore(parser *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		results := make([]Result, 0, 10)
+		nextState := parserState
+		fmt.Printf("\n=== nextState: %+v\n", nextState)
+
+		for {
+			testState := parser.ParserFun(nextState)
+			fmt.Printf("\n=== testState: %+v\n", testState)
+			if testState.IsError {
+				break
+			} else {
+				results = slices.Concat(results, []Result{Result(testState.Results)})
+				nextState = testState
+			}
+		}
+		if len(results) == 0 {
+			return updateParserError(parserState, fmt.Errorf("ZeroOrMore: unable to match any input using parser at index %d", parserState.Index))
+		}
+		return updateParserState(nextState, nextState.Index, Result(results))
+	}
+	return NewParser("ZeroOrMore("+parser.Name()+")", parserFun)
 }
 
 // Choice is a parser that executes a sequence of parsers against a parser state,
@@ -254,50 +412,16 @@ func Choice(parsers ...*Parser) *Parser {
 	return NewParser("Choice("+getParserNames(parsers...)+")", parserFun)
 }
 
-// Many tries to execute the parser given as a parameter, until it succeeds. Aggregate the results and return with it at the end.
-// In never returns error either it could run the parser any times without errors or never.
-// TODO
-// func Many() {
-// }
-
-// ManyOne is similar to the Many parser, but it must be able to run the parser successfuly at least once,
-// otherwise it return with error.
-// TODO
-// func ManyOne() {
-// }
-
-// Chain takes a function which receieves the last matched value and should return a parser.
-// That parser is then used to parse the following input, forming a chain of parsers based on previous input.
-// Chain is the fundamental way of creating contextual parsers.
-func Chain(parser *Parser, parserMakerFn func(Result) *Parser) *Parser {
-	parserFun := func(parserState ParserState) ParserState {
-		if parserState.IsError {
-			return parserState
-		}
-		newState := parser.ParserFun(parserState)
-		if newState.IsError {
-			return newState
-		}
-
-		nextParser := parserMakerFn(newState.Results)
-		result := nextParser.ParserFun(newState)
-
-		return updateParserState(newState, newState.Index, Result(result))
-	}
-
-	return NewParser("Chain("+parser.Name()+")", parserFun)
-}
-
 // Between is a utility function that takes two parsers as arguments that defines a starting and ending pattern of a content,
 // and returns a function that takes a content parser as argument.
 // Using the resulted parser will provide a result that is the outcome of the content parser.
 func Between(leftParser, rightParser *Parser) func(*Parser) *Parser {
 	return func(contentParser *Parser) *Parser {
-		return Map(SequenceOf(
+		return SequenceOf(
 			leftParser,
 			contentParser,
 			rightParser,
-		), func(result Result) Result {
+		).Map(func(result Result) Result {
 			arrResults := result.([]Result)
 			return arrResults[1]
 		})
@@ -305,7 +429,24 @@ func Between(leftParser, rightParser *Parser) func(*Parser) *Parser {
 }
 
 // TODO
-// func EndOfInput *Parser {}
+// func StartOfInput() *Parser {}
+// func EndOfInput() *Parser {}
+
+// Template is a sample code block to create a new parser
+//func Template() *Parser {
+//	parserFun := func(parserState ParserState) ParserState {
+//		if parserState.IsError {
+//			return parserState
+//		}
+//		// TODO: Add logic here
+//		if OK {
+//			return updateParserState(parserState, newIndex, Result(theResult))
+//		}
+//
+//		return updateParserError(parserState, fmt.Errorf("error ... at %d with input: %s", parserState.Index, parserState.InputString[parserState.Index:]))
+//	}
+//	return NewParser("Template(...)", parserFun)
+//}
 
 // Returns with a new copy of state updated with the index and result values
 func updateParserState(state ParserState, index int, result Result) ParserState {
@@ -323,4 +464,19 @@ func updateParserError(state ParserState, errorMsg error) ParserState {
 	newState.Err = errorMsg
 	//fmt.Printf("   updateParserError(%s, %+v, %+v)\n                  => %+v\n", state, index, result, newState)
 	return newState
+}
+
+// getParserNames returns a string of the comma separated list of parser names
+func getParserNames(parsers ...*Parser) string {
+	parserNames := ""
+
+	if debugLevel > 1 {
+		for i, parser := range parsers {
+			parserNames = parserNames + parser.Name()
+			if i < len(parsers)-1 {
+				parserNames = parserNames + ", "
+			}
+		}
+	}
+	return parserNames
 }
