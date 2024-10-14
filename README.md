@@ -8,6 +8,8 @@ Many ideas are also borrowed from the
 youtube series of Low Byte Productions,
 and the presentation of Jeremy Brown at GopherCon 2022: on _Parsing w/o Code Generators: Parser Combinators in Go with Generics_.
 
+See the [examples/](examples/) to get started with this package.
+
 ## References
 
 - [Arcsecond](https://github.com/francisrstokes/arcsecond): a zero-dependency, Fantasy Land compliant JavaScript Parser Combinator library largely inspired by Haskell's Parsec.
