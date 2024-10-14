@@ -373,11 +373,9 @@ func OneOrMore(parser *Parser) *Parser {
 
 		results := make([]Result, 0, 10)
 		nextState := parserState
-		fmt.Printf("\n=== nextState: %+v\n", nextState)
 
 		for {
 			testState := parser.ParserFun(nextState)
-			fmt.Printf("\n=== testState: %+v\n", testState)
 			if testState.IsError {
 				break
 			} else {
