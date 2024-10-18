@@ -74,11 +74,7 @@ func Cond(conditionFn func(rune) bool) *Parser {
 			return parserState
 		}
 
-		// TODO: Replace with Remaining()
-		slicedInputString := parserState.InputString[parserState.Index:]
-
-		// TODO: Replace with end-check
-		if len(slicedInputString) == 0 {
+		if parserState.AtTheEnd() {
 			return updateParserError(parserState, fmt.Errorf("Cond: got Unexpected end of input."))
 		}
 
@@ -102,11 +98,7 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 			return parserState
 		}
 
-		// TODO: Replace with Remaining()
-		slicedInputString := parserState.InputString[parserState.Index:]
-
-		// TODO: Replace with end-check
-		if len(slicedInputString) == 0 {
+		if parserState.AtTheEnd() {
 			return updateParserError(parserState, fmt.Errorf("CondMin: got Unexpected end of input."))
 		}
 
@@ -146,11 +138,7 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 			return parserState
 		}
 
-		// TODO: Replace with Remaining()
-		slicedInputString := parserState.InputString[parserState.Index:]
-
-		// TODO: Replace with end-check
-		if len(slicedInputString) == 0 && minOccurences > 0 {
+		if parserState.AtTheEnd() && minOccurences > 0 {
 			return updateParserError(parserState, fmt.Errorf("CondMinMax: got Unexpected end of input."))
 		}
 

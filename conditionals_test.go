@@ -15,7 +15,7 @@ func TestCond_Ok(t *testing.T) {
 	expectedIndex := 1
 	expectedError := error(nil)
 	expectedResults := "H"
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
 
 	newState := Cond(IsAsciiLetter).Parse(input)
 	require.Equal(t, expectedState, newState)
@@ -33,7 +33,7 @@ func TestCondMin_Ok(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 	expectedResults := "Hello"
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
 
 	newState := CondMin(IsAsciiLetter, 3).Parse(input)
 	require.Equal(t, expectedState, newState)
@@ -51,7 +51,7 @@ func TestCondMin0_Ok(t *testing.T) {
 	expectedIndex := 0
 	expectedError := error(nil)
 	expectedResults := ""
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
 
 	newState := CondMin(IsDecimalDigit, 0).Parse(input)
 	require.Equal(t, expectedState, newState)
@@ -61,12 +61,12 @@ func TestCondMinMax_Ok(t *testing.T) {
 
 	input := "Hello World"
 	expectedError := error(nil)
-	expectedState := ParserState{InputString: input, Results: "Hell", Index: 4, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, "Hell", 4, expectedError)
 
 	newState := CondMinMax(IsAsciiLetter, 3, 4).Parse(input)
 	require.Equal(t, expectedState, newState)
 
 	newState = CondMinMax(IsAsciiLetter, 3, 20).Parse(input)
-	expectedState = ParserState{InputString: input, Results: "Hello", Index: 5, Err: expectedError, IsError: false}
+	expectedState = NewParserState(input, "Hello", 5, expectedError)
 	require.Equal(t, expectedState, newState)
 }

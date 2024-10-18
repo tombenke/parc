@@ -135,23 +135,6 @@ func Between(leftParser, rightParser *Parser) func(*Parser) *Parser {
 	}
 }
 
-// TODO
-// Template is a sample code block to create a new parser
-//func Template() *Parser {
-//	parserFun := func(parserState ParserState) ParserState {
-//		if parserState.IsError {
-//			return parserState
-//		}
-//		// TODO: Add logic here
-//		if OK {
-//			return updateParserState(parserState, newIndex, Result(theResult))
-//		}
-//
-//		return updateParserError(parserState, fmt.Errorf("error ... at %d with input: %s", parserState.Index, parserState.InputString[parserState.Index:]))
-//	}
-//	return NewParser("Template(...)", parserFun)
-//}
-
 // getParserNames returns a string of the comma separated list of parser names
 func getParserNames(parsers ...*Parser) string {
 	parserNames := ""

@@ -82,7 +82,7 @@ func TestSequenceOf(t *testing.T) {
 	expectedIndex := 11
 	expectedError := error(nil)
 	expectedResults := []Result{token1, token2, token3}
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
 
 	sequenceParser := SequenceOf(
 		Str(token1),
@@ -109,9 +109,9 @@ func TestZeroOrMore(t *testing.T) {
 	expectedIndex := 30
 	expectedError := error(nil)
 	expectedResultsZero := []Result{}
-	expectedStateZero := ParserState{InputString: input, Results: expectedResultsZero, Index: 0, Err: expectedError, IsError: false}
+	expectedStateZero := NewParserState(input, expectedResultsZero, 0, expectedError)
 	expectedResultsMore := []Result{tokenMore, tokenMore, tokenMore, tokenMore, tokenMore}
-	expectedStateMore := ParserState{InputString: input, Results: expectedResultsMore, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedStateMore := NewParserState(input, expectedResultsMore, expectedIndex, expectedError)
 
 	zeroOrMoreParser := ZeroOrMore(Str(tokenZero))
 
@@ -132,9 +132,9 @@ func TestOneOrMore(t *testing.T) {
 	expectedIndex := 12
 	expectedError := error(nil)
 	expectedResultsOne := []Result{tokenOne}
-	expectedStateOne := ParserState{InputString: input, Results: expectedResultsOne, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedStateOne := NewParserState(input, expectedResultsOne, expectedIndex, expectedError)
 	expectedResultsMore := []Result{tokenMore, tokenMore}
-	expectedStateMore := ParserState{InputString: input, Results: expectedResultsMore, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedStateMore := NewParserState(input, expectedResultsMore, expectedIndex, expectedError)
 
 	oneOrMoreParser := OneOrMore(Str(tokenOne))
 

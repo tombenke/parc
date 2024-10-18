@@ -17,11 +17,11 @@ func Char(s string) *Parser {
 			return updateParserError(parserState, fmt.Errorf("Wrong argument for Char('%s'). It must be a single character", s))
 		}
 
-		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
+		if strings.HasPrefix(parserState.Remaining(), s) {
 			return updateParserState(parserState, parserState.Index+len(s), Result(s))
 		}
 
-		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
+		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.Remaining()))
 	}
 	return NewParser("Char('"+s+"')", parserFun)
 }
@@ -50,7 +50,7 @@ func EndOfInput() *Parser {
 			return parserState
 		}
 
-		inputLength := len(parserState.InputString)
+		inputLength := parserState.InputLength()
 		if parserState.Index != inputLength {
 			return updateParserError(
 				parserState,
@@ -68,15 +68,16 @@ func Str(s string) *Parser {
 			return parserState
 		}
 
-		if len(parserState.InputString[parserState.Index:]) == 0 {
+		slicedInput := parserState.Remaining()
+		if len(slicedInput) == 0 {
 			return updateParserError(parserState, fmt.Errorf("Str: tried to match '%s', but got Unexpected end of input.", s))
 		}
 
-		if strings.HasPrefix(parserState.InputString[parserState.Index:], s) {
+		if strings.HasPrefix(slicedInput, s) {
 			return updateParserState(parserState, parserState.Index+len(s), Result(s))
 		}
 
-		return updateParserError(parserState, fmt.Errorf("Str: could not match '%s' with '%s'", s, parserState.InputString[parserState.Index:]))
+		return updateParserError(parserState, fmt.Errorf("Str: could not match '%s' with '%s'", s, parserState.Remaining()))
 	}
 	return NewParser("Str('"+s+"')", parserFun)
 }
@@ -119,20 +120,20 @@ func RegExp(patternName, regexpStr string) *Parser {
 		if parserState.IsError {
 			return parserState
 		}
-		slicedInputString := parserState.InputString[parserState.Index:]
-		if len(slicedInputString) == 0 {
+		slicedInput := parserState.Remaining()
+		if len(slicedInput) == 0 {
 			return updateParserError(parserState, fmt.Errorf("RegExp: tried to match /%s/, but got Unexpected end of input.", regexpStr))
 		}
 
 		lettersRegexp := regexp.MustCompile(regexpStr)
 
-		loc := lettersRegexp.FindIndex([]byte(slicedInputString))
+		loc := lettersRegexp.FindIndex([]byte(slicedInput))
 
 		if loc == nil {
 			return updateParserError(parserState, fmt.Errorf("RegExp: could not match %s at index %d", patternName, parserState.Index))
 		}
 
-		return updateParserState(parserState, parserState.Index+loc[1], Result(slicedInputString[loc[0]:loc[1]]))
+		return updateParserState(parserState, parserState.Index+loc[1], Result(slicedInput[loc[0]:loc[1]]))
 	}
 	return NewParser(fmt.Sprintf("RegExp('%s', /%s/)", patternName, regexpStr), parserFun)
 }

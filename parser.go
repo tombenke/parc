@@ -39,7 +39,7 @@ func NewParser(parserName string, parserFun ParserFun) *Parser {
 		var indent string
 		if debugLevel > 0 {
 			indent = strings.Repeat("|   ", parseDepth)
-			fmt.Printf("%s+-> %s <= Input: '%s'\n", indent, parserName, parserState.InputString[parserState.Index:])
+			fmt.Printf("%s+-> %s <= Input: '%s'\n", indent, parserName, parserState.Remaining())
 			parseDepth = parseDepth + 1
 		}
 		newState := parserFun(parserState)
@@ -65,7 +65,7 @@ func (p *Parser) Name() string {
 // Parse runs the parser with the target string
 func (p *Parser) Parse(inputString string) ParserState {
 	// It runs a parser within an initial state on the target string
-	initialState := ParserState{InputString: inputString, Index: 0, Results: Result(nil), Err: nil, IsError: false}
+	initialState := NewParserState(inputString, Result(nil), 0, nil)
 	return p.ParserFun(initialState)
 }
 

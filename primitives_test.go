@@ -58,7 +58,7 @@ func TestStr(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 	expectedResults := token
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
 
 	newState := Str(token).Parse(input)
 	require.Equal(t, expectedState, newState)
@@ -96,7 +96,7 @@ func TestLetters(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 	expectedResults := "Hello"
-	expectedState := ParserState{InputString: textInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(textInput, expectedResults, expectedIndex, expectedError)
 
 	newState := Letters().Parse(textInput)
 	require.Equal(t, expectedState, newState)
@@ -113,7 +113,7 @@ func TestDigits(t *testing.T) {
 	expectedIndex := 2
 	expectedError := error(nil)
 	expectedResults := "42"
-	expectedState := ParserState{InputString: numInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
+	expectedState := NewParserState(numInput, expectedResults, expectedIndex, expectedError)
 
 	newState := Digits().Parse(numInput)
 

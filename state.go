@@ -14,6 +14,22 @@ type ParserState struct {
 	IsError     bool
 }
 
+// NewParserState creates a new ParserState instance
+func NewParserState(inputString string, result Result, index int, err error) ParserState {
+	isError := false
+	if err != nil {
+		isError = true
+	}
+
+	return ParserState{
+		InputString: inputString,
+		Results:     result,
+		Index:       index,
+		Err:         err,
+		IsError:     isError,
+	}
+}
+
 // NextRune returns the next rune in the input,
 // as well as a new state in which the rune has been consumed.
 func (ps ParserState) NextRune() (rune, ParserState) {
@@ -24,6 +40,16 @@ func (ps ParserState) NextRune() (rune, ParserState) {
 // Remaining returns the a string which is just the unconsumed input
 func (ps ParserState) Remaining() string {
 	return ps.InputString[ps.Index:]
+}
+
+// InputLength returns the total length of the input
+func (ps ParserState) InputLength() int {
+	return len(ps.InputString)
+}
+
+// AtTheEnd returns true if index points to the end of the input string, otherwise returns false.
+func (ps ParserState) AtTheEnd() bool {
+	return ps.Index >= len(ps.InputString)
 }
 
 // Consume returns a new state in which the index pointer is advanced by n bytes
