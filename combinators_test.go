@@ -1,130 +1,77 @@
 package parc
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
-	"strconv"
 	"testing"
 )
 
-func init() {
-	Debug(0)
+var (
+	flightIdentifier  = SequenceOf(airlineDesignator, flightNumber, dateOfDeparture).Map(joinStrResults)
+	airlineDesignator = SequenceOf(CondMinMax(IsAlphaNumeric, 2, 2), CondMinMax(IsAlphabetic, 0, 1)).Map(joinStrResults)
+	flightNumber      = CondMinMax(IsDigit, 3, 4)
+	dateOfDeparture   = SequenceOf(Char("/"), CondMinMax(IsDigit, 1, 2)).Map(joinStrResults)
+	joinStrResults    = func(in Result) Result {
+		resultsArr := in.([]Result)
+		var results string
+		for _, v := range resultsArr {
+			results = results + v.(string)
+		}
+		return Result(results)
+	}
+)
+
+func BenchmarkFlightIdentifier(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		flightIdentifier.Parse("UA666/12")
+	}
 }
 
-func TestStartOfInput(t *testing.T) {
-	newState := StartOfInput().Parse("")
-	require.False(t, newState.IsError)
+func TestFlightIdentifier(t *testing.T) {
 
-	newState = SequenceOf(
-		StartOfInput(),
-		Str("Hello"),
-		Str(" "),
-		Str("World"),
-	).Parse("Hello World")
-	require.False(t, newState.IsError)
-
-	newState = SequenceOf(
-		Str("Hello"),
-		StartOfInput(), // Not at the start
-		Str(" "),
-		Str("World"),
-	).Parse("Hello World")
-	require.True(t, newState.IsError)
+	validInputs := []string{"LH939/3", "UA666/12"}
+	for _, input := range validInputs {
+		newState := flightIdentifier.Parse(input)
+		fmt.Printf("\n%+v\n", newState.Results)
+		require.Equal(t, input, newState.Results)
+		require.False(t, newState.IsError)
+	}
 }
 
-func TestEndOfInput(t *testing.T) {
-	newState := EndOfInput().Parse("")
-	require.False(t, newState.IsError)
+func TestFlightNumber(t *testing.T) {
 
-	newState = SequenceOf(
-		Str("Hello"),
-		Str(" "),
-		Str("World"),
-		EndOfInput(),
-	).Parse("Hello World")
-	require.False(t, newState.IsError)
+	validInputs := []string{"939", "666"}
+	for _, input := range validInputs {
+		newState := flightNumber.Parse(input)
+		fmt.Printf("\n%+v\n", newState.Results)
+		require.Equal(t, input, newState.Results)
+		require.False(t, newState.IsError)
+	}
 
-	newState = SequenceOf(
-		Str("Hello"),
-		EndOfInput(), // Not at the end
-		Str(" "),
-		Str("World"),
-	).Parse("Hello World")
-	require.True(t, newState.IsError)
 }
 
-func TestStr(t *testing.T) {
-
-	input := "Hello World"
-	token := "Hello"
-	expectedIndex := 5
-	expectedError := error(nil)
-	expectedResults := token
-	expectedState := ParserState{InputString: input, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
-
-	newState := Str(token).Parse(input)
-	require.Equal(t, expectedState, newState)
-
-	// Try with an empty input
-	newState = Str(token).Parse("")
-	require.True(t, newState.IsError)
+func TestAirlineDesignator(t *testing.T) {
+	//Debug(2)
+	validInputs := []string{"LH", "X3A"}
+	for _, input := range validInputs {
+		fmt.Printf("\ninput: %+v\n", input)
+		newState := airlineDesignator.Parse(input)
+		fmt.Printf("\n%+v\n", newState.Results)
+		require.Equal(t, input, newState.Results)
+		require.False(t, newState.IsError)
+	}
 }
 
-func TestInteger(t *testing.T) {
-
-	numInput := "42"
-	expectedIndex := 2
-	expectedResult := Result(int(42))
-	expectedError := error(nil)
-
-	newState := Integer().Parse(numInput)
-
-	require.Equal(t, expectedResult, newState.Results)
-	require.Equal(t, expectedIndex, newState.Index)
-	require.Equal(t, expectedError, newState.Err)
-	require.False(t, newState.IsError)
-
-	textInput := "Hello World!"
-
-	newState = Integer().Parse(textInput)
-
-	require.Equal(t, 0, newState.Index)
-	require.True(t, newState.IsError)
-}
-
-func TestLetters(t *testing.T) {
-
-	textInput := "Hello World!"
-	expectedIndex := 5
-	expectedError := error(nil)
-	expectedResults := "Hello"
-	expectedState := ParserState{InputString: textInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
-
-	newState := Letters().Parse(textInput)
-	require.Equal(t, expectedState, newState)
-
-	numInput := "42 is the number of the Universe!"
-	newState = Letters().Parse(numInput)
-	require.Equal(t, 0, newState.Index)
-	require.True(t, newState.IsError)
-}
-
-func TestDigits(t *testing.T) {
-
-	numInput := "42 is the number of the Universe!"
-	expectedIndex := 2
-	expectedError := error(nil)
-	expectedResults := "42"
-	expectedState := ParserState{InputString: numInput, Results: expectedResults, Index: expectedIndex, Err: expectedError, IsError: false}
-
-	newState := Digits().Parse(numInput)
-
-	require.Equal(t, expectedState, newState)
-
-	textInput := "Hello World!"
-
-	newState = Digits().Parse(textInput)
-	require.Equal(t, 0, newState.Index)
-	require.True(t, newState.IsError)
+func TestDateOfDeparture(t *testing.T) {
+	//Debug(2)
+	validInputs := []string{"/1", "/12"}
+	for _, input := range validInputs {
+		fmt.Printf("\ninput: %+v\n", input)
+		newState := dateOfDeparture.Parse(input)
+		fmt.Printf("\n%+v\n", newState.Results)
+		require.Equal(t, input, newState.Results)
+		require.False(t, newState.IsError)
+	}
 }
 
 func TestSequenceOf(t *testing.T) {
@@ -233,56 +180,6 @@ func TestChoice(t *testing.T) {
 	newState = choiceParser.Parse(inputWithPunct)
 
 	require.True(t, newState.IsError)
-}
-
-func TestMap(t *testing.T) {
-	type MapResult struct {
-		Tag   string
-		Value int
-	}
-	input := "42 Hello"
-	digitsToIntMapperFn := func(in Result) Result {
-		strValue := in.(string)
-		intValue, _ := strconv.Atoi(strValue)
-		result := MapResult{
-			Tag:   "INTEGER",
-			Value: intValue,
-		}
-		return Result(result)
-	}
-
-	newState := SequenceOf(
-		Map(Digits(), digitsToIntMapperFn),
-		Str(" "),
-		Str("Hello"),
-	).Parse(input)
-
-	require.False(t, newState.IsError)
-}
-
-func TestParser_Map(t *testing.T) {
-	type MapResult struct {
-		Tag   string
-		Value int
-	}
-	input := "42 Hello"
-	digitsToIntMapperFn := func(in Result) Result {
-		strValue := in.(string)
-		intValue, _ := strconv.Atoi(strValue)
-		result := MapResult{
-			Tag:   "INTEGER",
-			Value: intValue,
-		}
-		return Result(result)
-	}
-
-	newState := SequenceOf(
-		Digits().Map(digitsToIntMapperFn),
-		Str(" "),
-		Str("Hello"),
-	).Parse(input)
-
-	require.False(t, newState.IsError)
 }
 
 func TestBetween(t *testing.T) {

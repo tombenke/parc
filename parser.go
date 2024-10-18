@@ -17,6 +17,11 @@ var (
 	debugLevel = 0
 )
 
+// ParserFun type represents the generic format of parsers,
+// that receives a ParserState as input,
+// and returns with a new ParserState as an output
+type ParserFun func(parserState ParserState) ParserState
+
 // Parser struct represent a parser
 type Parser struct {
 	name      string
