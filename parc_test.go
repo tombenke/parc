@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	Debug(2)
+	Debug(0)
 }
 
 func TestStartOfInput(t *testing.T) {
