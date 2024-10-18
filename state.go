@@ -2,6 +2,7 @@ package parc
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -54,6 +55,10 @@ func (ps ParserState) AtTheEnd() bool {
 
 // Consume returns a new state in which the index pointer is advanced by n bytes
 func (ps ParserState) Consume(n int) ParserState {
+	if debugLevel > 2 {
+		indent := strings.Repeat("|   ", parseDepth)
+		fmt.Printf("%s state.Consume(%d) Input: '%d'\n", indent, n, ps.Index)
+	}
 	ps.Index += n
 	return ps
 }

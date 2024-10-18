@@ -27,7 +27,7 @@ func TestMap(t *testing.T) {
 	}
 
 	newState := SequenceOf(
-		Map(Digits(), digitsToIntMapperFn),
+		Map(Digits, digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
 	).Parse(input)
@@ -52,7 +52,7 @@ func TestParser_Map(t *testing.T) {
 	}
 
 	newState := SequenceOf(
-		Digits().Map(digitsToIntMapperFn),
+		Digits.Map(digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
 	).Parse(input)

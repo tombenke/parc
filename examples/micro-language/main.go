@@ -38,7 +38,7 @@ func buildParser() parc.Parser {
 	operator := parc.Choice(parc.Str("+"), parc.Str("-"), parc.Str("*"), parc.Str("/"))
 
 	expr = *parc.Choice(
-		parc.Map(parc.Integer(), func(in parc.Result) parc.Result {
+		parc.Map(parc.Integer, func(in parc.Result) parc.Result {
 			operand := Operand{
 				Tag:   "INTEGER",
 				Value: in.(int),

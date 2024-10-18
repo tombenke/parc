@@ -65,6 +65,11 @@ func IsCarriageReturn(r rune) bool {
 	return r == '\r'
 }
 
+// IsAnyChar Tests if rune is any char. Actually it always returns with true.
+func IsAnyChar(r rune) bool {
+	return true
+}
+
 // Cond returns a Parser which tests the next rune in the input with the condition function.
 // If the condition is met, the rune is consumed from the input and the parser succeeds.
 // Otherwise the parser fails.
@@ -112,8 +117,12 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 
 		// Try to take as many occurences as possible, but at least minOccurences
 		for {
+			if parserState.AtTheEnd() {
+				break
+			}
+
 			r, nextState := currentState.NextRune()
-			if nextState.IsError || !conditionFn(r) {
+			if r == utf8.RuneError || parserState.AtTheEnd() || !conditionFn(r) {
 				break
 			}
 			numFound = numFound + 1

@@ -7,25 +7,6 @@ import (
 	"strings"
 )
 
-// Char is a parser that matches a fixed, single character value with the target string exactly one time
-func Char(s string) *Parser {
-	parserFun := func(parserState ParserState) ParserState {
-		if parserState.IsError {
-			return parserState
-		}
-		if len(s) != 1 {
-			return updateParserError(parserState, fmt.Errorf("Wrong argument for Char('%s'). It must be a single character", s))
-		}
-
-		if strings.HasPrefix(parserState.Remaining(), s) {
-			return updateParserState(parserState, parserState.Index+len(s), Result(s))
-		}
-
-		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.Remaining()))
-	}
-	return NewParser("Char('"+s+"')", parserFun)
-}
-
 // StartOfInput is a parser that only succeeds when the parser is at the beginning of the input.
 func StartOfInput() *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -61,6 +42,37 @@ func EndOfInput() *Parser {
 	return NewParser("EndOfInput()", parserFun)
 }
 
+// Char is a parser that matches a fixed, single character value with the target string exactly one time
+func Char(s string) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		if len(s) != 1 {
+			return updateParserError(parserState, fmt.Errorf("Wrong argument for Char('%s'). It must be a single character", s))
+		}
+
+		if strings.HasPrefix(parserState.Remaining(), s) {
+			return updateParserState(parserState, parserState.Index+len(s), Result(s))
+		}
+
+		return updateParserError(parserState, fmt.Errorf("Could not match '%s' with '%s'", s, parserState.Remaining()))
+	}
+	return NewParser("Char('"+s+"')", parserFun)
+}
+
+// Newline matches a space character ` `
+var Space = Char(" ")
+
+// Newline matches a newline character \n
+var Newline = Char("\n")
+
+// Tab matches a tab character \t
+var Tab = Char("\t")
+
+// AnyChar matches any character
+var AnyChar = Cond(IsAnyChar)
+
 // Str is a parser that matches a fixed string value with the target string exactly one time
 func Str(s string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -82,36 +94,30 @@ func Str(s string) *Parser {
 	return NewParser("Str('"+s+"')", parserFun)
 }
 
-// Letters is a parser that matches a single letter character with the target string
-func Letter() *Parser {
-	return RegExp("Letter", "^[A-Za-z]")
-}
+// AnyStr matches any characters
+var AnyStr = CondMin(IsAnyChar, 1)
+
+// Crlf recognizes the string \r\n
+var Crlf = Str("\r\n")
+
+// Letter is a parser that matches a single letter character with the target string
+var Letter = Cond(IsAsciiLetter)
 
 // Letters is a parser that matches one or more letter characters with the target string
-func Letters() *Parser {
-	return RegExp("Letters", "^[A-Za-z]+")
-}
+var Letters = CondMin(IsAsciiLetter, 1)
 
 // Digit is a parser that matches a singl digit character with the target string
-func Digit() *Parser {
-	return RegExp("Digit", "^[0-9]")
-}
+var Digit = Cond(IsDigit)
 
 // Digits is a parser that matches one or more digit characters with the target string
-func Digits() *Parser {
-	return RegExp("Digits", "^[0-9]+")
-}
+var Digits = CondMin(IsDigit, 1)
 
 // Integer is a parser that matches one or more digit characters with the target string and returns with an int value
-func Integer() *Parser {
-	digitsToIntMapperFn := func(in Result) Result {
-		strValue := in.(string)
-		intValue, _ := strconv.Atoi(strValue)
-		return Result(intValue)
-	}
-
-	return Digits().Map(digitsToIntMapperFn)
-}
+var Integer = Digits.Map(func(in Result) Result {
+	strValue := in.(string)
+	intValue, _ := strconv.Atoi(strValue)
+	return Result(intValue)
+})
 
 // RexExp is a parser that matches the regexpStr regular expression with the target string and returns with the first match.
 // The patternName parameter defines a name for the expression for debugging purposes

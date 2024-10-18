@@ -162,8 +162,8 @@ func TestChoice(t *testing.T) {
 	expectedError := error(nil)
 
 	choiceParser := Choice(
-		Letters(),
-		Digits(),
+		Letters,
+		Digits,
 	)
 	newState := choiceParser.Parse(inputWithText)
 
@@ -186,7 +186,7 @@ func TestBetween(t *testing.T) {
 	input := "(42)"
 	expectedResult := int(42)
 
-	betweenParser := Between(Char("("), Char(")"))(Integer())
+	betweenParser := Between(Char("("), Char(")"))(Integer)
 	newState := betweenParser.Parse(input)
 	require.Equal(t, expectedResult, newState.Results)
 	require.False(t, newState.IsError)
@@ -197,15 +197,15 @@ func TestChain(t *testing.T) {
 	//numberInput := "number:42"
 	dicerollInput := "diceroll:2d8"
 
-	stringParser := Letters()
-	numberParser := Digits()
+	stringParser := Letters
+	numberParser := Digits
 	dicerollParser := SequenceOf(
-		Integer(),
+		Integer,
 		Char("d"),
-		Integer(),
+		Integer,
 	)
 	parser := Chain(
-		SequenceOf(Letters(), Char(":")),
+		SequenceOf(Letters, Char(":")),
 		func(result Result) *Parser {
 			arr := result.([]Result)
 			leftValue := arr[0].(string)
@@ -227,14 +227,14 @@ func TestParser_Chain(t *testing.T) {
 	//numberInput := "number:42"
 	dicerollInput := "diceroll:2d8"
 
-	stringParser := Letters()
-	numberParser := Digits()
+	stringParser := Letters
+	numberParser := Digits
 	dicerollParser := SequenceOf(
-		Integer(),
+		Integer,
 		Char("d"),
-		Integer(),
+		Integer,
 	)
-	parser := SequenceOf(Letters(), Char(":")).Chain(
+	parser := SequenceOf(Letters, Char(":")).Chain(
 		func(result Result) *Parser {
 			arr := result.([]Result)
 			leftValue := arr[0].(string)

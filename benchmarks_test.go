@@ -7,7 +7,7 @@ import (
 
 var (
 	letters          = "ARelativelyLongTextToParseWithRegExpAndWithCond"
-	regexpParser     = Letters()
+	regexpParser     = RegExp("Letters", "^[A-Za-z]+")
 	condMinParser    = CondMin(IsAsciiLetter, 0)
 	condMinMaxParser = CondMinMax(IsAsciiLetter, 0, len(letters))
 )
@@ -25,7 +25,7 @@ func TestCompareResultsOfBenchmarks(t *testing.T) {
 
 func BenchmarkRegExp(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Letters().Parse(letters)
+		Letters.Parse(letters)
 	}
 }
 
