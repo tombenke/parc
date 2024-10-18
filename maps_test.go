@@ -30,7 +30,7 @@ func TestMap(t *testing.T) {
 		Map(Digits, digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
-	).Parse(input)
+	).Parse(&input)
 
 	require.False(t, newState.IsError)
 }
@@ -55,7 +55,7 @@ func TestParser_Map(t *testing.T) {
 		Digits.Map(digitsToIntMapperFn),
 		Str(" "),
 		Str("Hello"),
-	).Parse(input)
+	).Parse(&input)
 
 	require.False(t, newState.IsError)
 }

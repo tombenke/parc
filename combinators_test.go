@@ -22,8 +22,9 @@ var (
 )
 
 func BenchmarkFlightIdentifier(b *testing.B) {
+	input := "UA666/12"
 	for i := 0; i < b.N; i++ {
-		flightIdentifier.Parse("UA666/12")
+		flightIdentifier.Parse(&input)
 	}
 }
 
@@ -31,7 +32,7 @@ func TestFlightIdentifier(t *testing.T) {
 
 	validInputs := []string{"LH939/3", "UA666/12"}
 	for _, input := range validInputs {
-		newState := flightIdentifier.Parse(input)
+		newState := flightIdentifier.Parse(&input)
 		fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
@@ -42,7 +43,7 @@ func TestFlightNumber(t *testing.T) {
 
 	validInputs := []string{"939", "666"}
 	for _, input := range validInputs {
-		newState := flightNumber.Parse(input)
+		newState := flightNumber.Parse(&input)
 		fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
@@ -55,7 +56,7 @@ func TestAirlineDesignator(t *testing.T) {
 	validInputs := []string{"LH", "X3A"}
 	for _, input := range validInputs {
 		fmt.Printf("\ninput: %+v\n", input)
-		newState := airlineDesignator.Parse(input)
+		newState := airlineDesignator.Parse(&input)
 		fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
@@ -67,7 +68,7 @@ func TestDateOfDeparture(t *testing.T) {
 	validInputs := []string{"/1", "/12"}
 	for _, input := range validInputs {
 		fmt.Printf("\ninput: %+v\n", input)
-		newState := dateOfDeparture.Parse(input)
+		newState := dateOfDeparture.Parse(&input)
 		fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
@@ -82,14 +83,14 @@ func TestSequenceOf(t *testing.T) {
 	expectedIndex := 11
 	expectedError := error(nil)
 	expectedResults := []Result{token1, token2, token3}
-	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&input, expectedResults, expectedIndex, expectedError)
 
 	sequenceParser := SequenceOf(
 		Str(token1),
 		Str(token2),
 		Str(token3),
 	)
-	newState := sequenceParser.Parse(input)
+	newState := sequenceParser.Parse(&input)
 	require.Equal(t, expectedState, newState)
 
 	wrongSequenceParser := SequenceOf(
@@ -98,7 +99,7 @@ func TestSequenceOf(t *testing.T) {
 		Str(token3),
 		Str(token3), // Try one more at the end of the input
 	)
-	newState = wrongSequenceParser.Parse(input)
+	newState = wrongSequenceParser.Parse(&input)
 	require.True(t, newState.IsError)
 }
 
@@ -109,18 +110,18 @@ func TestZeroOrMore(t *testing.T) {
 	expectedIndex := 30
 	expectedError := error(nil)
 	expectedResultsZero := []Result{}
-	expectedStateZero := NewParserState(input, expectedResultsZero, 0, expectedError)
+	expectedStateZero := NewParserState(&input, expectedResultsZero, 0, expectedError)
 	expectedResultsMore := []Result{tokenMore, tokenMore, tokenMore, tokenMore, tokenMore}
-	expectedStateMore := NewParserState(input, expectedResultsMore, expectedIndex, expectedError)
+	expectedStateMore := NewParserState(&input, expectedResultsMore, expectedIndex, expectedError)
 
 	zeroOrMoreParser := ZeroOrMore(Str(tokenZero))
 
-	newState := zeroOrMoreParser.Parse(input)
+	newState := zeroOrMoreParser.Parse(&input)
 	require.Equal(t, expectedStateZero, newState)
 
 	zeroOrMoreParser = ZeroOrMore(Str(tokenMore))
 
-	newState = zeroOrMoreParser.Parse(input)
+	newState = zeroOrMoreParser.Parse(&input)
 	require.Equal(t, expectedStateMore, newState)
 }
 
@@ -132,23 +133,23 @@ func TestOneOrMore(t *testing.T) {
 	expectedIndex := 12
 	expectedError := error(nil)
 	expectedResultsOne := []Result{tokenOne}
-	expectedStateOne := NewParserState(input, expectedResultsOne, expectedIndex, expectedError)
+	expectedStateOne := NewParserState(&input, expectedResultsOne, expectedIndex, expectedError)
 	expectedResultsMore := []Result{tokenMore, tokenMore}
-	expectedStateMore := NewParserState(input, expectedResultsMore, expectedIndex, expectedError)
+	expectedStateMore := NewParserState(&input, expectedResultsMore, expectedIndex, expectedError)
 
 	oneOrMoreParser := OneOrMore(Str(tokenOne))
 
-	newState := oneOrMoreParser.Parse(input)
+	newState := oneOrMoreParser.Parse(&input)
 	require.Equal(t, expectedStateOne, newState)
 
 	oneOrMoreParser = OneOrMore(Str(tokenMore))
 
-	newState = oneOrMoreParser.Parse(input)
+	newState = oneOrMoreParser.Parse(&input)
 	require.Equal(t, expectedStateMore, newState)
 
 	oneOrMoreParser = OneOrMore(Str(tokenNone))
 
-	newState = oneOrMoreParser.Parse(input)
+	newState = oneOrMoreParser.Parse(&input)
 	require.Equal(t, Result(nil), newState.Results)
 	require.True(t, newState.IsError)
 }
@@ -165,19 +166,19 @@ func TestChoice(t *testing.T) {
 		Letters,
 		Digits,
 	)
-	newState := choiceParser.Parse(inputWithText)
+	newState := choiceParser.Parse(&inputWithText)
 
 	require.Equal(t, expectedIndexWithText, newState.Index)
 	require.Equal(t, expectedError, newState.Err)
 	require.False(t, newState.IsError)
 
-	newState = choiceParser.Parse(inputWithNumbers)
+	newState = choiceParser.Parse(&inputWithNumbers)
 
 	require.Equal(t, expectedIndexWithNumbers, newState.Index)
 	require.Equal(t, expectedError, newState.Err)
 	require.False(t, newState.IsError)
 
-	newState = choiceParser.Parse(inputWithPunct)
+	newState = choiceParser.Parse(&inputWithPunct)
 
 	require.True(t, newState.IsError)
 }
@@ -187,7 +188,7 @@ func TestBetween(t *testing.T) {
 	expectedResult := int(42)
 
 	betweenParser := Between(Char("("), Char(")"))(Integer)
-	newState := betweenParser.Parse(input)
+	newState := betweenParser.Parse(&input)
 	require.Equal(t, expectedResult, newState.Results)
 	require.False(t, newState.IsError)
 }
@@ -218,7 +219,7 @@ func TestChain(t *testing.T) {
 				return dicerollParser
 			}
 		})
-	newState := parser.Parse(dicerollInput)
+	newState := parser.Parse(&dicerollInput)
 	require.False(t, newState.IsError)
 }
 
@@ -247,6 +248,6 @@ func TestParser_Chain(t *testing.T) {
 				return dicerollParser
 			}
 		})
-	newState := parser.Parse(dicerollInput)
+	newState := parser.Parse(&dicerollInput)
 	require.False(t, newState.IsError)
 }

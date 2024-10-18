@@ -10,15 +10,17 @@ func init() {
 }
 
 func TestStartOfInput(t *testing.T) {
-	newState := StartOfInput().Parse("")
+	input := ""
+	newState := StartOfInput().Parse(&input)
 	require.False(t, newState.IsError)
 
+	hwInput := "Hello World"
 	newState = SequenceOf(
 		StartOfInput(),
 		Str("Hello"),
 		Str(" "),
 		Str("World"),
-	).Parse("Hello World")
+	).Parse(&hwInput)
 	require.False(t, newState.IsError)
 
 	newState = SequenceOf(
@@ -26,20 +28,22 @@ func TestStartOfInput(t *testing.T) {
 		StartOfInput(), // Not at the start
 		Str(" "),
 		Str("World"),
-	).Parse("Hello World")
+	).Parse(&hwInput)
 	require.True(t, newState.IsError)
 }
 
 func TestEndOfInput(t *testing.T) {
-	newState := EndOfInput().Parse("")
+	input := ""
+	newState := EndOfInput().Parse(&input)
 	require.False(t, newState.IsError)
 
+	hwInput := "Hello World"
 	newState = SequenceOf(
 		Str("Hello"),
 		Str(" "),
 		Str("World"),
 		EndOfInput(),
-	).Parse("Hello World")
+	).Parse(&hwInput)
 	require.False(t, newState.IsError)
 
 	newState = SequenceOf(
@@ -47,7 +51,7 @@ func TestEndOfInput(t *testing.T) {
 		EndOfInput(), // Not at the end
 		Str(" "),
 		Str("World"),
-	).Parse("Hello World")
+	).Parse(&hwInput)
 	require.True(t, newState.IsError)
 }
 
@@ -56,9 +60,9 @@ func TestAnyChar(t *testing.T) {
 	expectedIndex := 2
 	expectedError := error(nil)
 	expectedResults := input
-	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&input, expectedResults, expectedIndex, expectedError)
 
-	newState := AnyChar.Parse(input)
+	newState := AnyChar.Parse(&input)
 	require.Equal(t, expectedState, newState)
 }
 
@@ -67,9 +71,9 @@ func TestAnyStr(t *testing.T) {
 	expectedIndex := 98
 	expectedError := error(nil)
 	expectedResults := input
-	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&input, expectedResults, expectedIndex, expectedError)
 
-	newState := AnyStr.Parse(input)
+	newState := AnyStr.Parse(&input)
 	require.Equal(t, expectedState, newState)
 }
 
@@ -80,13 +84,14 @@ func TestStr(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 	expectedResults := token
-	expectedState := NewParserState(input, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&input, expectedResults, expectedIndex, expectedError)
 
-	newState := Str(token).Parse(input)
+	newState := Str(token).Parse(&input)
 	require.Equal(t, expectedState, newState)
 
 	// Try with an empty input
-	newState = Str(token).Parse("")
+	emptyInput := ""
+	newState = Str(token).Parse(&emptyInput)
 	require.True(t, newState.IsError)
 }
 
@@ -97,7 +102,7 @@ func TestInteger(t *testing.T) {
 	expectedResult := Result(int(42))
 	expectedError := error(nil)
 
-	newState := Integer.Parse(numInput)
+	newState := Integer.Parse(&numInput)
 
 	require.Equal(t, expectedResult, newState.Results)
 	require.Equal(t, expectedIndex, newState.Index)
@@ -106,7 +111,7 @@ func TestInteger(t *testing.T) {
 
 	textInput := "Hello World!"
 
-	newState = Integer.Parse(textInput)
+	newState = Integer.Parse(&textInput)
 
 	require.Equal(t, 0, newState.Index)
 	require.True(t, newState.IsError)
@@ -118,13 +123,13 @@ func TestLetters(t *testing.T) {
 	expectedIndex := 5
 	expectedError := error(nil)
 	expectedResults := "Hello"
-	expectedState := NewParserState(textInput, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&textInput, expectedResults, expectedIndex, expectedError)
 
-	newState := Letters.Parse(textInput)
+	newState := Letters.Parse(&textInput)
 	require.Equal(t, expectedState, newState)
 
 	numInput := "42 is the number of the Universe!"
-	newState = Letters.Parse(numInput)
+	newState = Letters.Parse(&numInput)
 	require.Equal(t, 0, newState.Index)
 	require.True(t, newState.IsError)
 }
@@ -135,15 +140,15 @@ func TestDigits(t *testing.T) {
 	expectedIndex := 2
 	expectedError := error(nil)
 	expectedResults := "42"
-	expectedState := NewParserState(numInput, expectedResults, expectedIndex, expectedError)
+	expectedState := NewParserState(&numInput, expectedResults, expectedIndex, expectedError)
 
-	newState := Digits.Parse(numInput)
+	newState := Digits.Parse(&numInput)
 
 	require.Equal(t, expectedState, newState)
 
 	textInput := "Hello World!"
 
-	newState = Digits.Parse(textInput)
+	newState = Digits.Parse(&textInput)
 	require.Equal(t, 0, newState.Index)
 	require.True(t, newState.IsError)
 }

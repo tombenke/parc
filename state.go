@@ -8,7 +8,7 @@ import (
 
 // ParserState represents an actual state of a parser
 type ParserState struct {
-	inputString string
+	inputString *string
 	Results     Result
 	Index       int
 	Err         error
@@ -16,7 +16,7 @@ type ParserState struct {
 }
 
 // NewParserState creates a new ParserState instance
-func NewParserState(inputString string, result Result, index int, err error) ParserState {
+func NewParserState(inputString *string, result Result, index int, err error) ParserState {
 	isError := false
 	if err != nil {
 		isError = true
@@ -40,17 +40,17 @@ func (ps ParserState) NextRune() (rune, ParserState) {
 
 // Remaining returns the a string which is just the unconsumed input
 func (ps ParserState) Remaining() string {
-	return ps.inputString[ps.Index:]
+	return (*ps.inputString)[ps.Index:]
 }
 
 // InputLength returns the total length of the input
 func (ps ParserState) InputLength() int {
-	return len(ps.inputString)
+	return len(*ps.inputString)
 }
 
 // AtTheEnd returns true if index points to the end of the input string, otherwise returns false.
 func (ps ParserState) AtTheEnd() bool {
-	return ps.Index >= len(ps.inputString)
+	return ps.Index >= len(*ps.inputString)
 }
 
 // Consume returns a new state in which the index pointer is advanced by n bytes
@@ -65,7 +65,7 @@ func (ps ParserState) Consume(n int) ParserState {
 
 // String returns with the string fromat of the parser state
 func (ps ParserState) String() string {
-	return fmt.Sprintf("inputString: '%s', Results: %+v, Index: %d, Err: %+v, IsError: %+v", ps.inputString, ps.Results, ps.Index, ps.Err, ps.IsError)
+	return fmt.Sprintf("inputString: '%s', Results: %+v, Index: %d, Err: %+v, IsError: %+v", *ps.inputString, ps.Results, ps.Index, ps.Err, ps.IsError)
 }
 
 // Returns with a new copy of state updated with the index and result values

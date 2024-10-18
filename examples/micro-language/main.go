@@ -14,7 +14,7 @@ func main() {
 
 func interpreter(input string) int {
 	parser := buildParser()
-	parseResults := parser.Parse(input)
+	parseResults := parser.Parse(&input)
 	endResult := evaluate(parseResults.Results)
 	return endResult
 }

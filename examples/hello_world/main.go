@@ -12,16 +12,18 @@ func main() {
 }
 
 func RunHelloParser() {
-	results := parc.Str("Hello").Parse("Hello World")
+	input := "Hello World"
+	results := parc.Str("Hello").Parse(&input)
 	fmt.Printf("%+v\n", results)
 }
 
 func RunSequenceParser() {
+	input := "Hello World"
 	sequenceParser := parc.SequenceOf(
 
 		parc.Str("Hello "),
 		parc.Str("World"),
 	)
-	results := sequenceParser.Parse("Hello World")
+	results := sequenceParser.Parse(&input)
 	fmt.Printf("%+v\n", results)
 }

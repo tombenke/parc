@@ -63,7 +63,7 @@ func (p *Parser) Name() string {
 }
 
 // Parse runs the parser with the target string
-func (p *Parser) Parse(inputString string) ParserState {
+func (p *Parser) Parse(inputString *string) ParserState {
 	// It runs a parser within an initial state on the target string
 	initialState := NewParserState(inputString, Result(nil), 0, nil)
 	return p.ParserFun(initialState)
