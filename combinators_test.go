@@ -103,6 +103,28 @@ func TestSequenceOf(t *testing.T) {
 	require.True(t, newState.IsError)
 }
 
+func TestZeroOrOne(t *testing.T) {
+	input := "Hello Hello Hello Hello Hello "
+	tokenZero := "XXX "
+	tokenOne := "Hello "
+	expectedIndex := 6
+	expectedError := error(nil)
+	expectedResultsZero := Result(nil)
+	expectedStateZero := NewParserState(&input, expectedResultsZero, 0, expectedError)
+	expectedResultsOne := Result(tokenOne)
+	expectedStateOne := NewParserState(&input, expectedResultsOne, expectedIndex, expectedError)
+
+	zeroOrOneParser := ZeroOrOne(Str(tokenZero))
+
+	newState := zeroOrOneParser.Parse(&input)
+	require.Equal(t, expectedStateZero, newState)
+
+	zeroOrOneParser = ZeroOrOne(Str(tokenOne))
+
+	newState = zeroOrOneParser.Parse(&input)
+	require.Equal(t, expectedStateOne, newState)
+}
+
 func TestZeroOrMore(t *testing.T) {
 	input := "Hello Hello Hello Hello Hello "
 	tokenZero := "XXX "

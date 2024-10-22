@@ -22,6 +22,25 @@ func SequenceOf(parsers ...*Parser) *Parser {
 	return NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
 }
 
+// ZeroOrOne tries to execute the parser given as a parameter once.
+// Aggregate the results and returns with it at the end.
+// It never returns error either it could run the parser only once or could not run it at all.
+func ZeroOrOne(parser *Parser) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		nextState := parser.ParserFun(parserState)
+		if nextState.IsError {
+			return updateParserState(parserState, nextState.Index, Result(nil))
+		}
+
+		return nextState
+	}
+	return NewParser("ZeroOne("+parser.Name()+")", parserFun)
+}
+
 // ZeroOrMore tries to execute the parser given as a parameter, until it succeeds.
 // Aggregate the results and returns with it at the end.
 // It never returns error either it could run the parser any times without errors or never.
