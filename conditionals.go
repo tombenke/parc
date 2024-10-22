@@ -103,7 +103,7 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 			return parserState
 		}
 
-		if parserState.AtTheEnd() {
+		if parserState.AtTheEnd() && minOccurences > 0 {
 			return updateParserError(parserState, fmt.Errorf("CondMin: got Unexpected end of input."))
 		}
 
