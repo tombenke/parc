@@ -23,11 +23,8 @@ func Map(parser *Parser, mapper func(Result) Result) *Parser {
 
 // ErrorMap is like Map but it transforms the error value.
 // The function passed to ErrorMap gets an object the current error message (error),
-// the index (index) that parsing stopped at, and the data (data) from this parsing session.
-// Choice tries to execute the series of parser it got as a variadic parameter, and returns with the result of the first
-// parser that succeeds. If a parser returns with error, it tries to call the next one, until the last parsers.
-// In case none of them succeeds it does returns with error.
-func (p *Parser) ErrorMap(mapperFn func(err error, index int) error) *Parser {
+// the index (index) that parsing stopped at from this parsing session.
+func (p *Parser) ErrorMap(mapperFn func(ParserState) error) *Parser {
 
 	parserFun := func(parserState ParserState) ParserState {
 		newState := p.ParserFun(parserState)
@@ -35,7 +32,7 @@ func (p *Parser) ErrorMap(mapperFn func(err error, index int) error) *Parser {
 			return newState
 		}
 
-		return updateParserError(newState, mapperFn(newState.Err, newState.Index))
+		return updateParserError(newState, mapperFn(newState))
 	}
 
 	return NewParser("ErrorMap("+p.Name()+")", parserFun)

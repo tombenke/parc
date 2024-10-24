@@ -15,6 +15,9 @@ func SequenceOf(parsers ...*Parser) *Parser {
 		nextState := parserState
 		for _, parser := range parsers {
 			nextState = (*parser).ParserFun(nextState)
+			if nextState.IsError {
+				return updateParserError(parserState, fmt.Errorf("SequenceOf: unable to match the `%s` parser at index %d with '%s'", parser.Name(), parserState.Index, parserState.Remaining()))
+			}
 			results = slices.Concat(results, []Result{Result(nextState.Results)})
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
@@ -47,7 +50,7 @@ func Count(parser *Parser, count int) *Parser {
 			}
 		}
 		if len(results) != count {
-			return updateParserError(parserState, fmt.Errorf("Count: unable to match the parser exactly %d times at index %d", count, parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("Count: unable to match the parser exactly %d times at index %d with '%s'", count, parserState.Index, parserState.Remaining()))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
@@ -79,7 +82,7 @@ func CountMin(parser *Parser, minOccurences int) *Parser {
 			}
 		}
 		if len(results) < minOccurences {
-			return updateParserError(parserState, fmt.Errorf("CountMin: unable to match the parser at least %d times at index %d", minOccurences, parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("CountMin: unable to match the parser at least %d times at index %d with '%s'", minOccurences, parserState.Index, parserState.Remaining()))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}

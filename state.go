@@ -82,6 +82,7 @@ func updateParserError(state ParserState, errorMsg error) ParserState {
 	newState := state
 	newState.IsError = true
 	newState.Err = errorMsg
-	//fmt.Printf("   updateParserError(%s, %+v, %+v)\n                  => %+v\n", state, index, result, newState)
+	//fmt.Printf("   updateParserError(%+v, %+v)\n                  => %+v\n", state, errorMsg, newState)
+	fmt.Printf("\nERROR: %+v\n", errorMsg)
 	return newState
 }
