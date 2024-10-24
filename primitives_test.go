@@ -55,6 +55,30 @@ func TestEndOfInput(t *testing.T) {
 	require.True(t, newState.IsError)
 }
 
+func TestRest(t *testing.T) {
+	input := "Hello World"
+	expectedError := error(nil)
+	expectedResults := Result(input)
+	expectedIndex := 11
+	expectedState := NewParserState(&input, expectedResults, expectedIndex, expectedError)
+
+	newState := Rest().Parse(&input)
+	require.Equal(t, expectedState, newState)
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(Str("Hello"), Rest()).Parse(&input)
+	expectedResults = []Result([]Result{"Hello", " World"})
+	expectedState = NewParserState(&input, expectedResults, expectedIndex, expectedError)
+	require.Equal(t, expectedState, newState)
+	require.False(t, newState.IsError)
+
+	newState = SequenceOf(Str("Hello"), Str(" "), Str("World"), Rest()).Parse(&input)
+	expectedResults = []Result([]Result{"Hello", " ", "World", ""})
+	expectedState = NewParserState(&input, expectedResults, expectedIndex, expectedError)
+	require.Equal(t, expectedState, newState)
+	require.False(t, newState.IsError)
+}
+
 func TestAnyChar(t *testing.T) {
 	input := "ű"
 	expectedIndex := 2

@@ -103,6 +103,69 @@ func TestSequenceOf(t *testing.T) {
 	require.True(t, newState.IsError)
 }
 
+func TestTimes(t *testing.T) {
+	input := "Hello Hello Hello Hello Hello "
+	tokenNOk := "XXX "
+	tokenOk := "Hello "
+	expectedIndex := 24
+	expectedError := error(nil)
+	expectedResultsNOk := Result(nil)
+	expectedResultsOk := []Result{tokenOk, tokenOk, tokenOk, tokenOk}
+	expectedStateOk := NewParserState(&input, expectedResultsOk, expectedIndex, expectedError)
+
+	timesParser := Times(Str(tokenOk), 4)
+
+	newState := timesParser.Parse(&input)
+	require.Equal(t, expectedStateOk, newState)
+
+	timesParser = Times(Str(tokenNOk), 4)
+
+	newState = timesParser.Parse(&input)
+	require.Equal(t, expectedResultsNOk, newState.Results)
+}
+
+func TestTimesMin(t *testing.T) {
+	input := "Hello Hello Hello Hello Hello "
+	tokenNOk := "XXX "
+	tokenOk := "Hello "
+	expectedIndex := 30
+	expectedError := error(nil)
+	expectedResultsNOk := Result(nil)
+	expectedResultsOk := []Result{tokenOk, tokenOk, tokenOk, tokenOk, tokenOk}
+	expectedStateOk := NewParserState(&input, expectedResultsOk, expectedIndex, expectedError)
+
+	timesMinParser := TimesMin(Str(tokenOk), 2)
+
+	newState := timesMinParser.Parse(&input)
+	require.Equal(t, expectedStateOk, newState)
+
+	timesMinParser = TimesMin(Str(tokenNOk), 2)
+
+	newState = timesMinParser.Parse(&input)
+	require.Equal(t, expectedResultsNOk, newState.Results)
+}
+
+func TestTimesMinMax(t *testing.T) {
+	input := "Hello Hello Hello Hello Hello "
+	tokenNOk := "XXX "
+	tokenOk := "Hello "
+	expectedIndex := 18
+	expectedError := error(nil)
+	expectedResultsNOk := Result(nil)
+	expectedResultsOk := []Result{tokenOk, tokenOk, tokenOk}
+	expectedStateOk := NewParserState(&input, expectedResultsOk, expectedIndex, expectedError)
+
+	timesMinMaxParser := TimesMinMax(Str(tokenOk), 2, 3)
+
+	newState := timesMinMaxParser.Parse(&input)
+	require.Equal(t, expectedStateOk, newState)
+
+	timesMinMaxParser = TimesMinMax(Str(tokenNOk), 2, 3)
+
+	newState = timesMinMaxParser.Parse(&input)
+	require.Equal(t, expectedResultsNOk, newState.Results)
+}
+
 func TestZeroOrOne(t *testing.T) {
 	input := "Hello Hello Hello Hello Hello "
 	tokenZero := "XXX "

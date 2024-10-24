@@ -42,6 +42,24 @@ func EndOfInput() *Parser {
 	return NewParser("EndOfInput()", parserFun)
 }
 
+// Rest is a parser that returns the remaining input
+func Rest() *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+
+		inputLength := parserState.InputLength()
+		if parserState.Index > inputLength {
+			return updateParserError(
+				parserState,
+				fmt.Errorf("Rest: expect index %d less then or equal to the length of input %d", parserState.Index, inputLength))
+		}
+		return updateParserState(parserState, inputLength, Result(parserState.Remaining()))
+	}
+	return NewParser("Rest()", parserFun)
+}
+
 // Char is a parser that matches a fixed, single character value with the target string exactly one time
 func Char(s string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {

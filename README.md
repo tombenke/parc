@@ -6,7 +6,8 @@ It mainly inspired by the [Arcsecond](https://github.com/francisrstokes/arcsecon
 Many ideas are also borrowed from the 
 [How Parser Combinators Work, Parser Combinators From Scratch](https://www.youtube.com/watch?v=6oQLRhw5Ah0&t=185s)
 youtube series of Low Byte Productions,
-and the presentation of Jeremy Brown at GopherCon 2022: on _Parsing w/o Code Generators: Parser Combinators in Go with Generics_.
+the presentation of Jeremy Brown at GopherCon 2022: on _Parsing w/o Code Generators: Parser Combinators in Go with Generics_,
+and the [nom](https://docs.rs/nom/latest/nom/index.html) Rust parser combinator library.
 
 See the [examples/](examples/) to get started with this package.
 
@@ -17,6 +18,6 @@ See the [examples/](examples/) to get started with this package.
 - [How Parser Combinators Work, Parser Combinators From Scratch](https://www.youtube.com/watch?v=6oQLRhw5Ah0&t=185s)
 - [Parser-Combinators-From-Scratch](https://github.com/lowbyteproductions/Parser-Combinators-From-Scratch)
 - [GopherCon 2022: Jeremy Brown - Parsing w/o Code Generators: Parser Combinators in Go with Generics](https://www.youtube.com/watch?v=x5p_SJNRB4U)
-
 - [Simple parser combinator package as shown at GopherCon 2022](https://github.com/jhbrown-veradept/gophercon22-parser-combinators/tree/main)
+- [nom](https://docs.rs/nom/latest/nom/index.html)
 

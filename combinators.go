@@ -22,8 +22,104 @@ func SequenceOf(parsers ...*Parser) *Parser {
 	return NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
 }
 
+// Times is an alias of the Count parser
+var Times = Count
+
+// Count tries to execute the parser given as a parameter exactly count times.
+// Collects results into an array and returns with it at the end.
+// It returns error if it could not run the parser exaclty count times.
+// You can use Times parser, instead of Count since that is an alias of this parser.
+func Count(parser *Parser, count int) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		results := make([]Result, 0, 10)
+		nextState := parserState
+
+		for {
+			testState := parser.ParserFun(nextState)
+			if testState.IsError || len(results) >= count {
+				break
+			} else {
+				results = slices.Concat(results, []Result{Result(testState.Results)})
+				nextState = testState
+			}
+		}
+		if len(results) != count {
+			return updateParserError(parserState, fmt.Errorf("Count: unable to match the parser exactly %d times at index %d", count, parserState.Index))
+		}
+		return updateParserState(nextState, nextState.Index, Result(results))
+	}
+	return NewParser("Count("+parser.Name()+")", parserFun)
+}
+
+// TimesMin is an alias of the CountMin parser
+var TimesMin = CountMin
+
+// CountMin tries to execute the parser given as a parameter at least minOccurences times.
+// Collects results into an array and returns with it at the end.
+// It returns error if it could not run the parser at least minOccurences times.
+// You can use TimesMin parser, instead of CountMin since that is an alias of this parser.
+func CountMin(parser *Parser, minOccurences int) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		results := make([]Result, 0, 10)
+		nextState := parserState
+
+		for {
+			testState := parser.ParserFun(nextState)
+			if testState.IsError {
+				break
+			} else {
+				results = slices.Concat(results, []Result{Result(testState.Results)})
+				nextState = testState
+			}
+		}
+		if len(results) < minOccurences {
+			return updateParserError(parserState, fmt.Errorf("CountMin: unable to match the parser at least %d times at index %d", minOccurences, parserState.Index))
+		}
+		return updateParserState(nextState, nextState.Index, Result(results))
+	}
+	return NewParser("CountMin("+parser.Name()+")", parserFun)
+}
+
+// TimesMinMax is an alias of the CountMinMax parser
+var TimesMinMax = CountMinMax
+
+// CountMinMax tries to execute the parser given as a parameter at least minOccurences but maximum maxOccurences times.
+// Collects results into an array and returns with it at the end.
+// It returns error if it could not run the parser at least minOccurences times.
+// You can use TimesMinMax parser, instead of CountMinMax since that is an alias of this parser.
+func CountMinMax(parser *Parser, minOccurences int, maxOccurences int) *Parser {
+	parserFun := func(parserState ParserState) ParserState {
+		if parserState.IsError {
+			return parserState
+		}
+		results := make([]Result, 0, 10)
+		nextState := parserState
+
+		for {
+			testState := parser.ParserFun(nextState)
+			if testState.IsError || len(results) >= maxOccurences {
+				break
+			} else {
+				results = slices.Concat(results, []Result{Result(testState.Results)})
+				nextState = testState
+			}
+		}
+		if len(results) < minOccurences {
+			return updateParserError(parserState, fmt.Errorf("CountMinMax: unable to match the parser at least %d times at index %d", minOccurences, parserState.Index))
+		}
+		return updateParserState(nextState, nextState.Index, Result(results))
+	}
+	return NewParser("CountMinMax("+parser.Name()+")", parserFun)
+}
+
 // ZeroOrOne tries to execute the parser given as a parameter once.
-// Aggregate the results and returns with it at the end.
+// It returns `nil` if it could not match, or a single result if match occured.
 // It never returns error either it could run the parser only once or could not run it at all.
 func ZeroOrOne(parser *Parser) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -42,7 +138,7 @@ func ZeroOrOne(parser *Parser) *Parser {
 }
 
 // ZeroOrMore tries to execute the parser given as a parameter, until it succeeds.
-// Aggregate the results and returns with it at the end.
+// Collects the results into an array and returns with it at the end.
 // It never returns error either it could run the parser any times without errors or never.
 func ZeroOrMore(parser *Parser) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -70,7 +166,7 @@ func ZeroOrMore(parser *Parser) *Parser {
 // OneOrMore is similar to the ZeroOrMore parser,
 // but it must be able to run the parser successfuly at least once, otherwise it return with error.
 // It executes the parser given as a parameter, until it succeeds,
-// meanwhile it aggregate the results then returns with it at the end.
+// meanwhile it collects the results into an array then returns with it at the end.
 func OneOrMore(parser *Parser) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
