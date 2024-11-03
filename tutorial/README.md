@@ -72,7 +72,7 @@ that are single characters or strings.
 
 The `Chr()` matches a single character.
 
-Run the [Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
+Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
 
 ```go
 	input := "Hello World"
@@ -122,7 +122,8 @@ and makes sure if the complete input string is fully processed:
 
 The `Rest()` returns the remaining input.
 
-See also the `SequenceOf()` parser example for the application of these last three parsers.
+See also the [`SequenceOf()` parser](https://github.com/tombenke/parc/tree/master/tutorial#sequenceof)
+for the application of these last three parsers.
 
 # Conditionals
 
@@ -352,15 +353,6 @@ The following parsers can be taken as a shortcut of the `Count...()` counterpart
   meanwhile it collects the results into an array then returns with it at the end.
   This can be also defined as `CountMin(parser, 1)`.
 
-
-## Combining the parsers
-
-TODO
-
-```go
-
-```
-
 # Mapping
 
 Every parser object implements a `Map()` method, that must get a mapper function. This mapper function gets the latest result of the `Parse()` call, and returns any value that is made out of the raw input result.
@@ -464,7 +456,99 @@ Run [the Chain example](Chain/Chain.go): `go run tutorial/Chain/Chain.go`:
 
 # Debugging
 
-TODO
+In case of higher order, complex parsers it is not trivial to identify the bugs, so there is a built-in debugging feature of the parc package.
+
+The parser can print debug information during the parsing, at several levels of details, that can be controlled by the `parc.Debug(level int)` function.
+
+The higher the level, the more detailed information will be printed out. `level=0` means: _no debug will be printed_.
+
+Here are some examples of the different debug levels, that is printed out, running [the Choice parser example](tutorial/Choice/Choice.go):
+
+```bash
+go run tutorial/Choice/Choice.go
+```
+
+with `parc.Debug(1)`:
+
+```txt
++-> Choice() <= Input: 'Hello World'
+|   +-> CondMin() <= Input: 'Hello World'
+|   +<- CondMin() =>
+|       Err: <nil>
++<- Choice() =>
+    Err: <nil>
+inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
++-> Choice() <= Input: '1342 234 45'
+|   +-> CondMin() <= Input: '1342 234 45'
+|   +<- CondMin() =>
+|       Err: CondMin: 0 number of found are less then minOccurences: 1
+|   +-> CondMin() <= Input: '1342 234 45'
+|   +<- CondMin() =>
+|       Err: <nil>
++<- Choice() =>
+    Err: <nil>
+inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
+```
+
+with `parc.Debug(2)`:
+
+```txt
++-> Choice(CondMin(), CondMin()) <= Input: 'Hello World'
+|   +-> CondMin() <= Input: 'Hello World'
+|   +<- CondMin() =>
+|       Err: <nil>, Result: 'Hello'
++<- Choice(CondMin(), CondMin()) =>
+    Err: <nil>, Result: 'Hello'
+inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
++-> Choice(CondMin(), CondMin()) <= Input: '1342 234 45'
+|   +-> CondMin() <= Input: '1342 234 45'
+
+ERROR: CondMin: 0 number of found are less then minOccurences: 1
+|   +<- CondMin() =>
+|       Err: CondMin: 0 number of found are less then minOccurences: 1, Result: '<nil>'
+|   +-> CondMin() <= Input: '1342 234 45'
+|   +<- CondMin() =>
+|       Err: <nil>, Result: '1342'
++<- Choice(CondMin(), CondMin()) =>
+    Err: <nil>, Result: '1342'
+inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
+```
+
+with `parc.Debug(3)`:
+
+```txt
++-> Choice(CondMin(), CondMin()) <= Input: 'Hello World'
+|   +-> CondMin() <= Input: 'Hello World'
+|   |    state.Consume(1) Input: '0'
+|   |    state.Consume(1) Input: '1'
+|   |    state.Consume(1) Input: '2'
+|   |    state.Consume(1) Input: '3'
+|   |    state.Consume(1) Input: '4'
+|   |    state.Consume(1) Input: '5'
+|   +<- CondMin() =>
+|       Err: <nil>, Result: 'Hello'
++<- Choice(CondMin(), CondMin()) =>
+    Err: <nil>, Result: 'Hello'
+inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
++-> Choice(CondMin(), CondMin()) <= Input: '1342 234 45'
+|   +-> CondMin() <= Input: '1342 234 45'
+|   |    state.Consume(1) Input: '0'
+
+ERROR: CondMin: 0 number of found are less then minOccurences: 1
+|   +<- CondMin() =>
+|       Err: CondMin: 0 number of found are less then minOccurences: 1, Result: '<nil>'
+|   +-> CondMin() <= Input: '1342 234 45'
+|   |    state.Consume(1) Input: '0'
+|   |    state.Consume(1) Input: '1'
+|   |    state.Consume(1) Input: '2'
+|   |    state.Consume(1) Input: '3'
+|   |    state.Consume(1) Input: '4'
+|   +<- CondMin() =>
+|       Err: <nil>, Result: '1342'
++<- Choice(CondMin(), CondMin()) =>
+    Err: <nil>, Result: '1342'
+inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
+```
 
 # Error Mapping
 

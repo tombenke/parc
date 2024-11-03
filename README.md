@@ -11,7 +11,7 @@ and the [nom](https://docs.rs/nom/latest/nom/index.html) Rust parser combinator 
 
 See the [tutorial/](tutorial/) to get started with this package.
 
-Read the [parc package doc pages](https://pkg.go.dev/github.com/reusee/parc).
+Read the [parc package doc pages](https://pkg.go.dev/github.com/tombenke/parc).
 
 As every parser has its own unit tests, so find them in the source code,
 and study the ones you want to use, in order to better understanding how to use them.

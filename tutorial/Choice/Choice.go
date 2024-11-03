@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	parc.Debug(3)
+
 	inputWithText := "Hello World"
 	inputWithNumbers := "1342 234 45"
 
