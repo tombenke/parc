@@ -25,11 +25,25 @@ or somewhere in between the beginning and the end of the input string.
 
 ## The Parser State
 
-In fact the return value of the `Parse()` method will be a `ParserState`,
-that hold a reference to the original input string,
+In fact the return value of the `Parse()` method will be a [`ParserState`](../state.go):
+
+```go
+// ParserState represents an actual state of a parser
+type ParserState struct {
+	inputString *string
+	Results     Result
+	Index       int
+	Err         error
+	IsError     bool
+}
+```
+The parser state holds a reference to the original input string,
 the actual index of the character in the input string after the execution of the method,
 the `Error` property that is either `nil` or an `error`,
 and a helper `bool` property that is called `IsError` that will be `true` in case the `Error` is not `nil`.
+
+The `Results` property has `Result` type, that is actually `any`.
+In some cases it holds a single value, but it may also hold an `[]Result` array, depending on the type of parser used.
 
 As the elementary parsers are successfully executed on the input string,
 the index will be moved along it until it reaches the end of the string.
@@ -74,6 +88,8 @@ The primitive parsers are the most basic building blocks.
 They makes possible to match specific literal values,
 that are single characters or strings.
 
+The `Str(s string)` parser matches a fixed string literal value given as parameter, with the target string exactly one time.
+
 The `Chr(s string)` matches a single character. The parameter must be a one-character-long string.
 
 Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
@@ -105,8 +121,6 @@ var Tab = Char("\t")
 // Crlf recognizes the string \r\n
 var Crlf = Str("\r\n")
 ```
-
-The `Str(s string)` parser matches a fixed string literal value given as parameter, with the target string exactly one time.
 
 The `RegExp(patternName, regexpStr string)` parser tries to match a regular expression.
 The first parameter is the name of the pattern, which is useful to find out which parser we occasionally watch, when we debugging.
@@ -302,10 +316,10 @@ Run [the Count example](Count/Count.go): `go run tutorial/Count/Count.go`:
 ```
 
 The `CountMin(parser *Parser, minOccurences int)` (alias `TimesMin()`):
-tries to execute the parser given as a parameter at least minOccurences times.
+tries to execute the parser given as a parameter at least `minOccurences` times.
 Collects results into an array and returns with it at the end.
-It returns error if it could not run the parser at least minOccurences times.
-You can use TimesMin parser, instead of CountMin since that is an alias of this parser.
+It returns error if it could not run the parser at least `minOccurences` times.
+You can use `TimesMin()` parser, instead of `CountMin()` since that is an alias of this parser.
 
 Run [the CountMin example](CountMin/CountMin.go): `go run tutorial/CountMin/CountMin.go`:
 
@@ -319,10 +333,10 @@ Run [the CountMin example](CountMin/CountMin.go): `go run tutorial/CountMin/Coun
 ```
 
 The `CountMinMax(parser *Parser, minOccurences int, maxOccurences int)` (alias `TimesMinMax()`):
-tries to execute the parser given as a parameter at least minOccurences but maximum maxOccurences times.
+tries to execute the parser given as a parameter at least `minOccurences` but maximum `maxOccurences` times.
 Collects results into an array and returns with it at the end.
-It returns error if it could not run the parser at least minOccurences times.
-You can use TimesMinMax parser, instead of CountMinMax since that is an alias of this parser.
+It returns error if it could not run the parser at least `minOccurences` times.
+You can use `TimesMinMax()` parser, instead of `CountMinMax()` since that is an alias of this parser.
 
 Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/CountMinMax/CountMinMax.go`:
 
@@ -388,7 +402,7 @@ Run [the Map example](Map/Map.go): `go run tutorial/Map/Map.go`:
 
 # Chaining
 
-During the parsing process, at a given stage there can be cases, when it is necessary to change how to continue the parsing for the next section of the input string. In other words, we need to change the specific parser that we want to continume with the parsing.
+During the parsing process, at a given stage there can be cases, when it is necessary to change how to continue the parsing for the next section of the input string. In other words, we need to change the specific parser that we want to continue with the parsing.
 The scope of this change may valid until the end of the input string, or it may valid only for a specific part of the input string.
 
 The `Chain(parser *Parser, parserMakerFn func(Result) *Parser)` makes possible to change the parser for the continuation of parsing process
