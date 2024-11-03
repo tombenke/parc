@@ -49,7 +49,7 @@ Run the [Str example](Str/Str.go): `go run tutorial/Str/Str.go`:
 	// >> inputString: 'Hello World', Results: Hello World, Index: 11, Err: <nil>, IsError: false
 ```
 
-The result will be the matched string, and the new (`Index`) position points to the end of the input string, and no errors occured.
+The result will be the matched string, and the new (`Index: 11,`) position points to the end of the input string, and no errors occured.
 
 If we try to apply a non-matching string the resulted state will hold an error,
 the `Results` property will be `nil`, and the `Index` property remains `0`:
@@ -63,9 +63,9 @@ the `Results` property will be `nil`, and the `Index` property remains `0`:
 The parc package provides a set of different parsers.
 These parsers can be classified into three categories:
 
-- primitive parsers
-- conditional parsers
-- combinator parsers
+- primitives,
+- conditionals,
+- combinators.
 
 # Primitives
 
@@ -74,7 +74,7 @@ The primitive parsers are the most basic building blocks.
 They makes possible to match specific literal values,
 that are single characters or strings.
 
-The `Chr()` matches a single character.
+The `Chr(s string)` matches a single character. The parameter must be a one-character-long string.
 
 Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
 
@@ -106,7 +106,11 @@ var Tab = Char("\t")
 var Crlf = Str("\r\n")
 ```
 
-The `RegExp()` parser tries to match a regular expression:
+The `Str(s string)` parser matches a fixed string literal value given as parameter, with the target string exactly one time.
+
+The `RegExp(patternName, regexpStr string)` parser tries to match a regular expression.
+The first parameter is the name of the pattern, which is useful to find out which parser we occasionally watch, when we debugging.
+The second parameter is a string, that holds a regular expression to match.
 
 Run [the RegExp example](RegExp/RegExp.go): `go run tutorial/RegExp/RegExp.go`:
 
