@@ -2,13 +2,14 @@ package parc
 
 import (
 	"fmt"
+	"strconv"
 	"unicode/utf8"
 )
 
 // IsAlphabetic is an alias of IsAsciiLetter
 var IsAlphabetic = IsAsciiLetter
 
-// IsAlphabetic Tests if byte is ASCII alphabetic: [A-Za-z]
+// IsAlphabetic tests if rune is ASCII alphabetic: [A-Za-z]
 func IsAsciiLetter(r rune) bool {
 	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
 }
@@ -16,56 +17,57 @@ func IsAsciiLetter(r rune) bool {
 // IsDigit is an alias of IsDecimalDigit
 var IsDigit = IsDecimalDigit
 
-// IsDecimalDigit Tests if byte is ASCII digit: [0-9]
+// IsDecimalDigit tests if rune is ASCII digit: [0-9]
 func IsDecimalDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-// IsHexadecimalDigit Tests if byte is ASCII hex digit: [0-9A-Fa-f]
+// IsHexadecimalDigit tests if rune is ASCII hex digit: [0-9A-Fa-f]
 func IsHexadecimalDigit(r rune) bool {
 	return r >= '0' && r <= '9' || r >= 'a' && r <= 'f' || r >= 'A' && r <= 'F'
 }
 
-// IsOctDigit Tests if byte is ASCII octal digit: [0-7]
+// IsOctDigit tests if rune is ASCII octal digit: [0-7]
 func IsOctalDigit(r rune) bool {
 	return r >= '0' && r <= '7'
 }
 
-// IsBinaryDigit Tests if byte is ASCII binary digit: [0-1]
+// IsBinaryDigit tests if rune is ASCII binary digit: [0-1]
 func IsBinaryDigit(r rune) bool {
 	return r >= '0' && r <= '7'
 }
 
-// IsAlphaNumeric: Tests if byte is ASCII alphanumeric: [A-Za-z0-9]
+// IsAlphaNumeric tests if rune is ASCII alphanumeric: [A-Za-z0-9]
 func IsAlphaNumeric(r rune) bool {
 	return IsAsciiLetter(r) || IsDecimalDigit(r)
 }
 
+// IsWhitespace tests if rune is ASCII space, newline or tab
 func IsWhitespace(r rune) bool {
 	return r == ' ' || r == '\n' || r == '\t'
 }
 
-// IsSpace Tests if byte is ASCII space or tab: [ ]
+// IsSpace tests if rune is ASCII space or tab
 func IsSpace(r rune) bool {
 	return r == ' '
 }
 
-// IsTab Tests if byte is ASCII space or tab: [\t]
+// IsTab Tests if rune is ASCII space or tab: [\t]
 func IsTab(r rune) bool {
 	return r == '\t'
 }
 
-// IsNewline Tests if byte is ASCII newline: [\n]
+// IsNewline tests if rune is ASCII newline: [\n]
 func IsNewline(r rune) bool {
 	return r == '\n'
 }
 
-// IsCarriageReturn Tests if byte is ASCII newline: [\r]
+// IsCarriageReturn tests if rune is ASCII newline: [\r]
 func IsCarriageReturn(r rune) bool {
 	return r == '\r'
 }
 
-// IsAnyChar Tests if rune is any char. Actually it always returns with true.
+// IsAnyChar tests if rune is any char. Actually it always returns with true.
 func IsAnyChar(r rune) bool {
 	return true
 }
@@ -179,3 +181,28 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 	}
 	return NewParser("CondMinMax()", parserFun)
 }
+
+// AnyChar matches any character
+var AnyChar = Cond(IsAnyChar)
+
+// AnyStr matches any characters
+var AnyStr = CondMin(IsAnyChar, 1)
+
+// Letter is a parser that matches a single letter character with the target string
+var Letter = Cond(IsAsciiLetter)
+
+// Letters is a parser that matches one or more letter characters with the target string
+var Letters = CondMin(IsAsciiLetter, 1)
+
+// Digit is a parser that matches a singl digit character with the target string
+var Digit = Cond(IsDigit)
+
+// Digits is a parser that matches one or more digit characters with the target string
+var Digits = CondMin(IsDigit, 1)
+
+// Integer is a parser that matches one or more digit characters with the target string and returns with an int value
+var Integer = Digits.Map(func(in Result) Result {
+	strValue := in.(string)
+	intValue, _ := strconv.Atoi(strValue)
+	return Result(intValue)
+})

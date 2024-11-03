@@ -68,11 +68,29 @@ tasks:
     desc: Run all the go tests.
     cmds:
       - go test -count=1 ./...
+      - task run-tutorial-examples
+
+  run-tutorial-examples:
+    desc: Runs the example strings to make sure if they are not broken
+      - go run tutorial/Chain/Chain.go
+      - go run tutorial/Choice/Choice.go
+      - go run tutorial/Char/Char.go
+      - go run tutorial/Cond/Cond.go
+      - go run tutorial/CondMin/CondMin.go
+      - go run tutorial/CondMinMax/CondMinMax.go
+      - go run tutorial/Count/Count.go
+      - go run tutorial/CountMin/CountMin.go
+      - go run tutorial/CountMinMax/CountMinMax.go
+      - go run tutorial/Map/Map.go
+      - go run tutorial/micro-language/main.go
+      - go run tutorial/SequencyOf/SequenceOf.go
+      - go run tutorial/Str/Str.go
 
   test-verbose:
     desc: Run all the go tests.
     cmds:
       - go test -v -count=1 ./...
+      - task run-tutorial-examples
 
   test-single:
     desc: Run all the go tests in verbose mode from a single test file.

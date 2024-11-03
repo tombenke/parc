@@ -73,7 +73,6 @@ func updateParserState(state ParserState, index int, result Result) ParserState 
 	newState := state
 	newState.Index = index
 	newState.Results = result
-	//fmt.Printf("   updateParserState(%s, %+v, %+v)\n                  => %+v\n", state, index, result, newState)
 	return newState
 }
 
@@ -82,7 +81,6 @@ func updateParserError(state ParserState, errorMsg error) ParserState {
 	newState := state
 	newState.IsError = true
 	newState.Err = errorMsg
-	//fmt.Printf("   updateParserError(%+v, %+v)\n                  => %+v\n", state, errorMsg, newState)
 	if debugLevel > 1 {
 		fmt.Printf("\nERROR: %+v\n", errorMsg)
 	}

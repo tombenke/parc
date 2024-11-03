@@ -3,7 +3,6 @@ package parc
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -88,9 +87,6 @@ var Newline = Char("\n")
 // Tab matches a tab character \t
 var Tab = Char("\t")
 
-// AnyChar matches any character
-var AnyChar = Cond(IsAnyChar)
-
 // Str is a parser that matches a fixed string value with the target string exactly one time
 func Str(s string) *Parser {
 	parserFun := func(parserState ParserState) ParserState {
@@ -112,30 +108,8 @@ func Str(s string) *Parser {
 	return NewParser("Str('"+s+"')", parserFun)
 }
 
-// AnyStr matches any characters
-var AnyStr = CondMin(IsAnyChar, 1)
-
 // Crlf recognizes the string \r\n
 var Crlf = Str("\r\n")
-
-// Letter is a parser that matches a single letter character with the target string
-var Letter = Cond(IsAsciiLetter)
-
-// Letters is a parser that matches one or more letter characters with the target string
-var Letters = CondMin(IsAsciiLetter, 1)
-
-// Digit is a parser that matches a singl digit character with the target string
-var Digit = Cond(IsDigit)
-
-// Digits is a parser that matches one or more digit characters with the target string
-var Digits = CondMin(IsDigit, 1)
-
-// Integer is a parser that matches one or more digit characters with the target string and returns with an int value
-var Integer = Digits.Map(func(in Result) Result {
-	strValue := in.(string)
-	intValue, _ := strconv.Atoi(strValue)
-	return Result(intValue)
-})
 
 // RexExp is a parser that matches the regexpStr regular expression with the target string and returns with the first match.
 // The patternName parameter defines a name for the expression for debugging purposes

@@ -279,8 +279,8 @@ func TestBetween(t *testing.T) {
 }
 
 func TestChain(t *testing.T) {
-	//stringInput := "string:Hello"
-	//numberInput := "number:42"
+	stringInput := "string:Hello"
+	numberInput := "number:42"
 	dicerollInput := "diceroll:2d8"
 
 	stringParser := Letters
@@ -304,7 +304,14 @@ func TestChain(t *testing.T) {
 				return dicerollParser
 			}
 		})
-	newState := parser.Parse(&dicerollInput)
+
+	newState := parser.Parse(&stringInput)
+	require.False(t, newState.IsError)
+
+	newState = parser.Parse(&numberInput)
+	require.False(t, newState.IsError)
+
+	newState = parser.Parse(&dicerollInput)
 	require.False(t, newState.IsError)
 }
 

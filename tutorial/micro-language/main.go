@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	parc.Debug(1)
+	parc.Debug(0)
 	input := "(+ (* 10 2) (- (/ 50 3) 2))"
 	//input := "(+ 1 2)"
 	fmt.Printf("%s => interpreter => %d\n", input, interpreter(input))
@@ -61,8 +61,8 @@ func buildParser() parc.Parser {
 		op := Operation{
 			Tag:       "OPERATION",
 			Operation: arr[1].(string),
-			Operand_A: arr[3].(parc.Result),
-			Operand_B: arr[5].(parc.Result),
+			Operand_A: arr[3],
+			Operand_B: arr[5],
 		}
 		return parc.Result(op)
 	})
