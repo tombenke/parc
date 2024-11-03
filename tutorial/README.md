@@ -379,7 +379,7 @@ The following parsers can be taken as a shortcut of the `Count...()` counterpart
 
 Every parser object implements a `Map()` method, that must get a mapper function. This mapper function gets the latest result of the `Parse()` call, and returns any value that is made out of the raw input result.
 
-In the following example the `Integer` parser matches one or more digit characters with the target string and returns with an int value.
+In the following example the `Integer` parser matches one or more digit characters with the target string and returns with an `int` value.
 The conversion of the result to an integer is done in the `Map()` function of the parser:
 
 Run [the Map example](Map/Map.go): `go run tutorial/Map/Map.go`:
@@ -541,12 +541,12 @@ with `parc.Debug(3)`:
 ```txt
 +-> Choice(CondMin(), CondMin()) <= Input: 'Hello World'
 |   +-> CondMin() <= Input: 'Hello World'
-|   |    state.Consume(1) Input: '0'
-|   |    state.Consume(1) Input: '1'
-|   |    state.Consume(1) Input: '2'
-|   |    state.Consume(1) Input: '3'
-|   |    state.Consume(1) Input: '4'
-|   |    state.Consume(1) Input: '5'
+|   |    state.Consume(1) Index: '0'
+|   |    state.Consume(1) Index: '1'
+|   |    state.Consume(1) Index: '2'
+|   |    state.Consume(1) Index: '3'
+|   |    state.Consume(1) Index: '4'
+|   |    state.Consume(1) Index: '5'
 |   +<- CondMin() =>
 |       Err: <nil>, Result: 'Hello'
 +<- Choice(CondMin(), CondMin()) =>
@@ -554,17 +554,17 @@ with `parc.Debug(3)`:
 inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
 +-> Choice(CondMin(), CondMin()) <= Input: '1342 234 45'
 |   +-> CondMin() <= Input: '1342 234 45'
-|   |    state.Consume(1) Input: '0'
+|   |    state.Consume(1) Index: '0'
 
 ERROR: CondMin: 0 number of found are less then minOccurences: 1
 |   +<- CondMin() =>
 |       Err: CondMin: 0 number of found are less then minOccurences: 1, Result: '<nil>'
 |   +-> CondMin() <= Input: '1342 234 45'
-|   |    state.Consume(1) Input: '0'
-|   |    state.Consume(1) Input: '1'
-|   |    state.Consume(1) Input: '2'
-|   |    state.Consume(1) Input: '3'
-|   |    state.Consume(1) Input: '4'
+|   |    state.Consume(1) Index: '0'
+|   |    state.Consume(1) Index: '1'
+|   |    state.Consume(1) Index: '2'
+|   |    state.Consume(1) Index: '3'
+|   |    state.Consume(1) Index: '4'
 |   +<- CondMin() =>
 |       Err: <nil>, Result: '1342'
 +<- Choice(CondMin(), CondMin()) =>

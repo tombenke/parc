@@ -57,7 +57,7 @@ func (ps ParserState) AtTheEnd() bool {
 func (ps ParserState) Consume(n int) ParserState {
 	if debugLevel > 2 {
 		indent := strings.Repeat("|   ", parseDepth)
-		fmt.Printf("%s state.Consume(%d) Input: '%d'\n", indent, n, ps.Index)
+		fmt.Printf("%s state.Consume(%d) Index: '%d'\n", indent, n, ps.Index)
 	}
 	ps.Index += n
 	return ps
