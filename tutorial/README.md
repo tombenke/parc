@@ -1,17 +1,21 @@
 # parc tutorial
 
-# Intro
+# Introduction
 
 ## The Parser Objects
 
-The parc package provides a set of parser objects, that are building blocks.
-These building block can be combined to build up an application that is able to interpret the content of an
-input string according to the syntactic rules defined by the building blocks.
+The parc package provides a set of parser objects, that are building blocks, such as: `Str()`, `Count()`, `SequenceOf()`, `Choice()`, etc.
+These building blocks can be combined to build up an application that is able to interpret the content of an
+input string according to the syntactic rules that is defined via the combination of the parser objects.
 
 So the syntactic rules are coded by which building blockes used, and how they are combined with each other.
 
 The individual building block parsers as well as the composition of them will provide a method called `Parse()`
 that receives the input string to parse, and produces the results of parsing.
+
+In the following example: `parc.Str("Hello").Parse("Hello World!")`,
+the input string is `"Hello World!"` and the `Str("Hello")` parser
+will match the first word of the input string from the beginning until the first space character that is `"Hello"`.
 
 Every simple, building block parser applies a specific rule, and the call of the `Parse()` method will be successful,
 if this rule can be applied to the input, or the result will be an error in case the rule could not apply.
@@ -549,17 +553,3 @@ ERROR: CondMin: 0 number of found are less then minOccurences: 1
     Err: <nil>, Result: '1342'
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
-
-# Error Mapping
-
-TODO
-
-# Creating a new parser
-
-## The Parser Function
-
-TODO
-
-## The Parser constructor
-
-TODO
