@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	Debug(0)
+	//Debug(0)
 }
 
 func TestCond_Ok(t *testing.T) {

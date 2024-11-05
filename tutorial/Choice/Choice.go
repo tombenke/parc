@@ -6,16 +6,16 @@ import (
 )
 
 func main() {
-	parc.Debug(3)
+	parc.Debug(0)
 
 	inputWithText := "Hello World"
 	inputWithNumbers := "1342 234 45"
 
 	// The choice parser takes either letters or digits
 	choiceParser := parc.Choice(
-		parc.Letters,
-		parc.Digits,
-	)
+		parc.Letters.As("letters"),
+		parc.Digits.As("Digits"),
+	).As("letters-or-digits")
 
 	// The parser can parse the input string if it begins with letters
 	resultState := choiceParser.Parse(&inputWithText)

@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	Debug(0)
+	//Debug(0)
 }
 
 func TestMap(t *testing.T) {

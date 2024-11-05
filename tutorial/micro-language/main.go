@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	parc.Debug(0)
+	parc.Debug(3)
 	input := "(+ (* 10 2) (- (/ 50 3) 2))"
 	//input := "(+ 1 2)"
 	fmt.Printf("%s => interpreter => %d\n", input, interpreter(input))

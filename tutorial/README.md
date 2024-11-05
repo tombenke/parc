@@ -105,24 +105,27 @@ Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
 	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Could not match '_' with 'Hello World', IsError: true
 ```
 
+Every parser object has an `.As(label string)` member function, that assigns a label to it.
+This label helps the debugging, because this will be printed out instead of the original, native name of the parser.
+
 There are some predefined `Char()` and `Str()` primitive parsers that often used.
 These exported as public variables, and not functions:
 
 ```go
 // Newline matches a space character ` `
-var Space = Char(" ")
+var Space = Char(" ").As("Space")
 
 // Newline matches a newline character \n
-var Newline = Char("\n")
+var Newline = Char("\n").As("Newline")
 
 // Tab matches a tab character \t
-var Tab = Char("\t")
+var Tab = Char("\t").As("Tab")
 
 // Crlf recognizes the string \r\n
-var Crlf = Str("\r\n")
+var Crlf = Str("\r\n").As("Crlf")
 ```
 
-The `RegExp(patternName, regexpStr string)` parser tries to match a regular expression.
+The `RegExp(regexpStr string)` parser tries to match a regular expression.
 The first parameter is the name of the pattern, which is useful to find out which parser we occasionally watch, when we debugging.
 The second parameter is a string, that holds a regular expression to match.
 
@@ -130,7 +133,7 @@ Run [the RegExp example](RegExp/RegExp.go): `go run tutorial/RegExp/RegExp.go`:
 
 ```go
 	input := "Hello World"
-	resultState := parc.RegExp("HelloWorld", "^[A-Za-z]{5} [A-Za-z]{5}$").Parse(&input)
+	resultState := parc.RegExp("^[A-Za-z]{5} [A-Za-z]{5}$").As("HelloWorld").Parse(&input)
 	fmt.Printf("\n%+v\n", resultState)
 
 	// => inputString: 'Hello World', Results: Hello World, Index: 11, Err: <nil>, IsError: false
@@ -266,14 +269,16 @@ When parse the input, it tries to match these alternative parsers in the order o
 then returns the first successful result if there is any.
 
 ```go
+	parc.Debug(0)
+
 	inputWithText := "Hello World"
 	inputWithNumbers := "1342 234 45"
 
 	// The choice parser takes either letters or digits
 	choiceParser := parc.Choice(
-		parc.Letters,
-		parc.Digits,
-	)
+		parc.Letters.As("letters"),
+		parc.Digits.As("Digits"),
+	).As("letters-or-digits")
 
 	// The parser can parse the input string if it begins with letters
 	resultState := choiceParser.Parse(&inputWithText)
@@ -493,21 +498,21 @@ go run tutorial/Choice/Choice.go
 with `parc.Debug(1)`:
 
 ```txt
-+-> Choice() <= Input: 'Hello World'
-|   +-> CondMin() <= Input: 'Hello World'
-|   +<- CondMin() =>
++-> letters-or-digits <= Input: 'Hello World'
+|   +-> letters <= Input: 'Hello World'
+|   +<- letters =>
 |       Err: <nil>
-+<- Choice() =>
++<- letters-or-digits =>
     Err: <nil>
 inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
-+-> Choice() <= Input: '1342 234 45'
-|   +-> CondMin() <= Input: '1342 234 45'
-|   +<- CondMin() =>
-|       Err: CondMin: 0 number of found are less then minOccurences: 1
-|   +-> CondMin() <= Input: '1342 234 45'
-|   +<- CondMin() =>
++-> letters-or-digits <= Input: '1342 234 45'
+|   +-> letters <= Input: '1342 234 45'
+|   +<- letters =>
+|       Err: letters: 0 number of found are less then minOccurences: 1 at index 0
+|   +-> Digits <= Input: '1342 234 45'
+|   +<- Digits =>
 |       Err: <nil>
-+<- Choice() =>
++<- letters-or-digits =>
     Err: <nil>
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
@@ -515,23 +520,23 @@ inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 with `parc.Debug(2)`:
 
 ```txt
-+-> Choice(CondMin(), CondMin()) <= Input: 'Hello World'
-|   +-> CondMin() <= Input: 'Hello World'
-|   +<- CondMin() =>
++-> letters-or-digits <= Input: 'Hello World'
+|   +-> letters <= Input: 'Hello World'
+|   +<- letters =>
 |       Err: <nil>, Result: 'Hello'
-+<- Choice(CondMin(), CondMin()) =>
++<- letters-or-digits =>
     Err: <nil>, Result: 'Hello'
 inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
-+-> Choice(CondMin(), CondMin()) <= Input: '1342 234 45'
-|   +-> CondMin() <= Input: '1342 234 45'
++-> letters-or-digits <= Input: '1342 234 45'
+|   +-> letters <= Input: '1342 234 45'
 
-ERROR: CondMin: 0 number of found are less then minOccurences: 1
-|   +<- CondMin() =>
-|       Err: CondMin: 0 number of found are less then minOccurences: 1, Result: '<nil>'
-|   +-> CondMin() <= Input: '1342 234 45'
-|   +<- CondMin() =>
+ERROR: letters: 0 number of found are less then minOccurences: 1 at index 0
+|   +<- letters =>
+|       Err: letters: 0 number of found are less then minOccurences: 1 at index 0, Result: '<nil>'
+|   +-> Digits <= Input: '1342 234 45'
+|   +<- Digits =>
 |       Err: <nil>, Result: '1342'
-+<- Choice(CondMin(), CondMin()) =>
++<- letters-or-digits =>
     Err: <nil>, Result: '1342'
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
@@ -539,35 +544,35 @@ inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 with `parc.Debug(3)`:
 
 ```txt
-+-> Choice(CondMin(), CondMin()) <= Input: 'Hello World'
-|   +-> CondMin() <= Input: 'Hello World'
++-> letters-or-digits <= Input: 'Hello World'
+|   +-> letters <= Input: 'Hello World'
 |   |    state.Consume(1) Index: '0'
 |   |    state.Consume(1) Index: '1'
 |   |    state.Consume(1) Index: '2'
 |   |    state.Consume(1) Index: '3'
 |   |    state.Consume(1) Index: '4'
 |   |    state.Consume(1) Index: '5'
-|   +<- CondMin() =>
+|   +<- letters =>
 |       Err: <nil>, Result: 'Hello'
-+<- Choice(CondMin(), CondMin()) =>
++<- letters-or-digits =>
     Err: <nil>, Result: 'Hello'
 inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
-+-> Choice(CondMin(), CondMin()) <= Input: '1342 234 45'
-|   +-> CondMin() <= Input: '1342 234 45'
++-> letters-or-digits <= Input: '1342 234 45'
+|   +-> letters <= Input: '1342 234 45'
 |   |    state.Consume(1) Index: '0'
 
-ERROR: CondMin: 0 number of found are less then minOccurences: 1
-|   +<- CondMin() =>
-|       Err: CondMin: 0 number of found are less then minOccurences: 1, Result: '<nil>'
-|   +-> CondMin() <= Input: '1342 234 45'
+ERROR: letters: 0 number of found are less then minOccurences: 1 at index 0
+|   +<- letters =>
+|       Err: letters: 0 number of found are less then minOccurences: 1 at index 0, Result: '<nil>'
+|   +-> Digits <= Input: '1342 234 45'
 |   |    state.Consume(1) Index: '0'
 |   |    state.Consume(1) Index: '1'
 |   |    state.Consume(1) Index: '2'
 |   |    state.Consume(1) Index: '3'
 |   |    state.Consume(1) Index: '4'
-|   +<- CondMin() =>
+|   +<- Digits =>
 |       Err: <nil>, Result: '1342'
-+<- Choice(CondMin(), CondMin()) =>
++<- letters-or-digits =>
     Err: <nil>, Result: '1342'
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```

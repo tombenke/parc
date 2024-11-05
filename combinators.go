@@ -7,6 +7,7 @@ import (
 
 // SequenceOf is a parser that executes a sequence of parsers against a parser state
 func SequenceOf(parsers ...*Parser) *Parser {
+	newParser := Parser{name: "SequenceOf(" + getParserNames(parsers...) + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -16,13 +17,14 @@ func SequenceOf(parsers ...*Parser) *Parser {
 		for _, parser := range parsers {
 			nextState = (*parser).ParserFun(nextState)
 			if nextState.IsError {
-				return updateParserError(parserState, nextState.Err /*fmt.Errorf("SequenceOf: unable to match the `%s` parser at index %d with '%s'", parser.Name(), parserState.Index, parserState.Remaining())*/)
+				return updateParserError(parserState, nextState.Err)
 			}
 			results = slices.Concat(results, []Result{Result(nextState.Results)})
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("SequenceOf("+getParserNames(parsers...)+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // Times is an alias of the Count parser
@@ -33,6 +35,7 @@ var Times = Count
 // It returns error if it could not run the parser exaclty count times.
 // You can use Times parser, instead of Count since that is an alias of this parser.
 func Count(parser *Parser, count int) *Parser {
+	newParser := Parser{name: "Count(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -51,11 +54,12 @@ func Count(parser *Parser, count int) *Parser {
 			}
 		}
 		if len(results) != count {
-			return updateParserError(parserState, testState.Err /*fmt.Errorf("Count: unable to match the parser exactly %d times at index %d with '%s'", count, parserState.Index, parserState.Remaining())*/)
+			return updateParserError(parserState, testState.Err)
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("Count("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // TimesMin is an alias of the CountMin parser
@@ -66,6 +70,7 @@ var TimesMin = CountMin
 // It returns error if it could not run the parser at least minOccurences times.
 // You can use TimesMin parser, instead of CountMin since that is an alias of this parser.
 func CountMin(parser *Parser, minOccurences int) *Parser {
+	newParser := Parser{name: "CountMin(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -84,11 +89,12 @@ func CountMin(parser *Parser, minOccurences int) *Parser {
 			}
 		}
 		if len(results) < minOccurences {
-			return updateParserError(parserState, testState.Err /*fmt.Errorf("CountMin: unable to match the parser at least %d times at index %d with '%s'", minOccurences, parserState.Index, parserState.Remaining())*/)
+			return updateParserError(parserState, testState.Err)
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("CountMin("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // TimesMinMax is an alias of the CountMinMax parser
@@ -99,6 +105,7 @@ var TimesMinMax = CountMinMax
 // It returns error if it could not run the parser at least minOccurences times.
 // You can use TimesMinMax parser, instead of CountMinMax since that is an alias of this parser.
 func CountMinMax(parser *Parser, minOccurences int, maxOccurences int) *Parser {
+	newParser := Parser{name: "CountMinMax(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -117,17 +124,19 @@ func CountMinMax(parser *Parser, minOccurences int, maxOccurences int) *Parser {
 			}
 		}
 		if len(results) < minOccurences {
-			return updateParserError(parserState, testState.Err /*fmt.Errorf("CountMinMax: unable to match the parser at least %d times at index %d", minOccurences, parserState.Index)*/)
+			return updateParserError(parserState, testState.Err)
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("CountMinMax("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // ZeroOrOne tries to execute the parser given as a parameter once.
 // It returns `nil` if it could not match, or a single result if match occured.
 // It never returns error either it could run the parser only once or could not run it at all.
 func ZeroOrOne(parser *Parser) *Parser {
+	newParser := Parser{name: "ZeroOrOne(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -140,13 +149,15 @@ func ZeroOrOne(parser *Parser) *Parser {
 
 		return nextState
 	}
-	return NewParser("ZeroOne("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // ZeroOrMore tries to execute the parser given as a parameter, until it succeeds.
 // Collects the results into an array and returns with it at the end.
 // It never returns error either it could run the parser any times without errors or never.
 func ZeroOrMore(parser *Parser) *Parser {
+	newParser := Parser{name: "ZeroOrMore(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -166,7 +177,8 @@ func ZeroOrMore(parser *Parser) *Parser {
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("ZeroOrMore("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // OneOrMore is similar to the ZeroOrMore parser,
@@ -174,6 +186,7 @@ func ZeroOrMore(parser *Parser) *Parser {
 // It executes the parser given as a parameter, until it succeeds,
 // meanwhile it collects the results into an array then returns with it at the end.
 func OneOrMore(parser *Parser) *Parser {
+	newParser := Parser{name: "OneOrMore(" + parser.Name() + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
@@ -192,30 +205,33 @@ func OneOrMore(parser *Parser) *Parser {
 			}
 		}
 		if len(results) == 0 {
-			return updateParserError(parserState, nextState.Err /*fmt.Errorf("ZeroOrMore: unable to match any input using parser at index %d", parserState.Index)*/)
+			return updateParserError(parserState, nextState.Err)
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
-	return NewParser("ZeroOrMore("+parser.Name()+")", parserFun)
+	newParser.SetParserFun(parserFun)
+	return &newParser
 }
 
 // Choice is a parser that executes a sequence of parsers against a parser state,
 // and returns the first successful result if there is any
 func Choice(parsers ...*Parser) *Parser {
+	parser := Parser{name: "Choice(" + getParserNames(parsers...) + ")"}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
 		}
 		var nextState ParserState
 		for _, parser := range parsers {
-			nextState = parser.ParserFun(parserState)
+			nextState = (*parser).ParserFun(parserState)
 			if !nextState.IsError {
 				return nextState
 			}
 		}
-		return updateParserError(parserState /*nextState.Err,*/, fmt.Errorf("Choice: Unable to match with any parser at index %d with '%s'", parserState.Index, parserState.Remaining()))
+		return updateParserError(parserState, fmt.Errorf("%s: Unable to match with any parser at %s with '%s'", parser.Name(), parserState.IndexPosStr(), parserState.Remaining()))
 	}
-	return NewParser("Choice("+getParserNames(parsers...)+")", parserFun)
+	parser.SetParserFun(parserFun)
+	return &parser
 }
 
 // Chain takes a function which receieves the last matched value and should return a parser.

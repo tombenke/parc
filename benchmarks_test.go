@@ -7,7 +7,7 @@ import (
 
 var (
 	letters          = "ARelativelyLongTextToParseWithRegExpAndWithCond"
-	regexpParser     = RegExp("Letters", "^[A-Za-z]+")
+	regexpParser     = RegExp("^[A-Za-z]+").As("Letters")
 	condMinParser    = CondMin(IsAsciiLetter, 0)
 	condMinMaxParser = CondMinMax(IsAsciiLetter, 0, len(letters))
 )

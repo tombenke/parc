@@ -68,6 +68,20 @@ func (ps ParserState) String() string {
 	return fmt.Sprintf("inputString: '%s', Results: %+v, Index: %d, Err: %+v, IsError: %+v", *ps.inputString, ps.Results, ps.Index, ps.Err, ps.IsError)
 }
 
+// IndexRowCol returns with the row and column position of the actual index of the input string
+func (ps ParserState) IndexRowCol() (row, col int) {
+	row = strings.Count((*ps.inputString)[0:ps.Index], "\n") + 1
+	col = ps.Index - strings.LastIndex((*ps.inputString)[0:ps.Index], "\n")
+	return row, col
+}
+
+// IndexPos returns with the string format detailed position of the index of the input string
+// including the absolute position, the row and column.
+func (ps ParserState) IndexPosStr() string {
+	row, col := ps.IndexRowCol()
+	return fmt.Sprintf("index: %d, row: %d, col: %d", ps.Index, row, col)
+}
+
 // Returns with a new copy of state updated with the index and result values
 func updateParserState(state ParserState, index int, result Result) ParserState {
 	newState := state

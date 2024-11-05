@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	parc.Debug(2)
 	input := "Hello Wonderful World!"
 	sequenceParser := parc.SequenceOf(
 

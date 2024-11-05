@@ -35,17 +35,46 @@ func Debug(level int) {
 
 // NewParser is the constructor of the Parser
 func NewParser(parserName string, parserFun ParserFun) *Parser {
+	parser := Parser{name: parserName}
+	parser.SetParserFun(parserFun)
+	/*
+		wrapperFn := func(parserState ParserState) ParserState {
+			var indent string
+			if debugLevel > 0 {
+				indent = strings.Repeat("|   ", parseDepth)
+				fmt.Printf("%s+-> %s <= Input: '%s'\n", indent, parser.Name(), parserState.Remaining())
+				parseDepth = parseDepth + 1
+			}
+			newState := parserFun(parserState)
+			if debugLevel > 0 {
+				parseDepth = parseDepth - 1
+				fmt.Printf("%s+<- %s =>\n", indent, parser.Name())
+				if debugLevel > 1 {
+					fmt.Printf("%s    Err: %+v, Result: '%+v'\n", indent, newState.Err, newState.Results)
+				} else {
+					fmt.Printf("%s    Err: %+v\n", indent, newState.Err)
+				}
+			}
+			return newState
+		}
+		parser.ParserFun = wrapperFn
+	*/
+	return &parser
+}
+
+// Name returns the name of the parser
+func (p *Parser) SetParserFun(parserFun ParserFun) {
 	wrapperFn := func(parserState ParserState) ParserState {
 		var indent string
 		if debugLevel > 0 {
 			indent = strings.Repeat("|   ", parseDepth)
-			fmt.Printf("%s+-> %s <= Input: '%s'\n", indent, parserName, parserState.Remaining())
+			fmt.Printf("%s+-> %s <= Input: '%s'\n", indent, p.Name(), parserState.Remaining())
 			parseDepth = parseDepth + 1
 		}
 		newState := parserFun(parserState)
 		if debugLevel > 0 {
 			parseDepth = parseDepth - 1
-			fmt.Printf("%s+<- %s =>\n", indent, parserName)
+			fmt.Printf("%s+<- %s =>\n", indent, p.Name())
 			if debugLevel > 1 {
 				fmt.Printf("%s    Err: %+v, Result: '%+v'\n", indent, newState.Err, newState.Results)
 			} else {
@@ -54,7 +83,7 @@ func NewParser(parserName string, parserFun ParserFun) *Parser {
 		}
 		return newState
 	}
-	return &Parser{name: parserName, ParserFun: wrapperFn}
+	p.ParserFun = wrapperFn
 }
 
 // Name returns the name of the parser
@@ -86,6 +115,13 @@ func (p *Parser) Map(mapper func(Result) Result) *Parser {
 	}
 
 	return NewParser("Map("+p.Name()+")", parserFun)
+}
+
+// As takes a name for the parser,
+// that will be used in error messages and debugging instead of the original native name of the parser
+func (p *Parser) As(name string) *Parser {
+	p.name = name
+	return p
 }
 
 // Chain takes a function which receieves the last matched value and should return a parser.

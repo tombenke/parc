@@ -19,7 +19,6 @@ tasks:
       - task: format
       - task: lint
       - task: test
-      - task: docs
 
   pre-commit:
     desc: Runs the QA tasks from a git pre-commit hook

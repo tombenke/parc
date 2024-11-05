@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	parc.Debug(2)
+
 	// There are several format of inputs,
 	// and the first segment before the `:` character
 	// determines how to parse the rest of the input string.
