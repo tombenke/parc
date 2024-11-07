@@ -1,7 +1,7 @@
 package parc
 
 import (
-	"fmt"
+	////"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -33,7 +33,7 @@ func TestFlightIdentifier(t *testing.T) {
 	validInputs := []string{"LH939/3", "UA666/12"}
 	for _, input := range validInputs {
 		newState := flightIdentifier.Parse(&input)
-		fmt.Printf("\n%+v\n", newState.Results)
+		////fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
 	}
@@ -44,7 +44,7 @@ func TestFlightNumber(t *testing.T) {
 	validInputs := []string{"939", "666"}
 	for _, input := range validInputs {
 		newState := flightNumber.Parse(&input)
-		fmt.Printf("\n%+v\n", newState.Results)
+		////fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
 	}
@@ -55,9 +55,9 @@ func TestAirlineDesignator(t *testing.T) {
 	//Debug(2)
 	validInputs := []string{"LH", "X3A"}
 	for _, input := range validInputs {
-		fmt.Printf("\ninput: %+v\n", input)
+		////fmt.Printf("\ninput: %+v\n", input)
 		newState := airlineDesignator.Parse(&input)
-		fmt.Printf("\n%+v\n", newState.Results)
+		////fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
 	}
@@ -67,9 +67,9 @@ func TestDateOfDeparture(t *testing.T) {
 	//Debug(2)
 	validInputs := []string{"/1", "/12"}
 	for _, input := range validInputs {
-		fmt.Printf("\ninput: %+v\n", input)
+		////fmt.Printf("\ninput: %+v\n", input)
 		newState := dateOfDeparture.Parse(&input)
-		fmt.Printf("\n%+v\n", newState.Results)
+		////fmt.Printf("\n%+v\n", newState.Results)
 		require.Equal(t, input, newState.Results)
 		require.False(t, newState.IsError)
 	}

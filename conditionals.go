@@ -2,7 +2,6 @@ package parc
 
 import (
 	"fmt"
-	"strconv"
 	"unicode/utf8"
 )
 
@@ -187,28 +186,3 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 	parser.SetParserFun(parserFun)
 	return &parser
 }
-
-// AnyChar matches any character
-var AnyChar = Cond(IsAnyChar)
-
-// AnyStr matches any characters
-var AnyStr = CondMin(IsAnyChar, 1)
-
-// Letter is a parser that matches a single letter character with the target string
-var Letter = Cond(IsAsciiLetter)
-
-// Letters is a parser that matches one or more letter characters with the target string
-var Letters = CondMin(IsAsciiLetter, 1)
-
-// Digit is a parser that matches a singl digit character with the target string
-var Digit = Cond(IsDigit)
-
-// Digits is a parser that matches one or more digit characters with the target string
-var Digits = CondMin(IsDigit, 1)
-
-// Integer is a parser that matches one or more digit characters with the target string and returns with an int value
-var Integer = Digits.Map(func(in Result) Result {
-	strValue := in.(string)
-	intValue, _ := strconv.Atoi(strValue)
-	return Result(intValue)
-})

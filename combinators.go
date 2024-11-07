@@ -153,6 +153,9 @@ func ZeroOrOne(parser *Parser) *Parser {
 	return &newParser
 }
 
+// Optional is an alias of ZeroOrOne
+var Optional = ZeroOrOne
+
 // ZeroOrMore tries to execute the parser given as a parameter, until it succeeds.
 // Collects the results into an array and returns with it at the end.
 // It never returns error either it could run the parser any times without errors or never.

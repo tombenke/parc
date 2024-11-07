@@ -5,10 +5,6 @@ import (
 	"testing"
 )
 
-func init() {
-	//Debug(0)
-}
-
 func TestCond_Ok(t *testing.T) {
 
 	input := "Hello World"

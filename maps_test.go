@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-func init() {
-	//Debug(0)
-}
-
 func TestMap(t *testing.T) {
 	type MapResult struct {
 		Tag   string

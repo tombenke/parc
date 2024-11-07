@@ -361,7 +361,7 @@ Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/Coun
 
 The following parsers can be taken as a shortcut of the `Count...()` counterparts.
 
-- `ZeroOrOne(parser *Parser)`:
+- `ZeroOrOne(parser *Parser)` (alias `Optional`):
   tries to execute the parser given as a parameter once.
   It returns `nil` if it could not match, or a single result if match occured.
   It never returns error either it could run the parser only once or could not run it at all.

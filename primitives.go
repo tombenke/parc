@@ -78,15 +78,6 @@ func Char(s string) *Parser {
 	return NewParser("Char('"+s+"')", parserFun)
 }
 
-// Newline matches a space character ` `
-var Space = Char(" ").As("Space")
-
-// Newline matches a newline character \n
-var Newline = Char("\n").As("Newline")
-
-// Tab matches a tab character \t
-var Tab = Char("\t").As("Tab")
-
 // Str is a parser that matches a fixed string value with the target string exactly one time
 func Str(s string) *Parser {
 	parser := Parser{name: "Str('" + s + "')"}
@@ -109,9 +100,6 @@ func Str(s string) *Parser {
 	parser.SetParserFun(parserFun)
 	return &parser
 }
-
-// Crlf recognizes the string \r\n
-var Crlf = Str("\r\n").As("Crlf")
 
 // RexExp is a parser that matches the regexpStr regular expression with the target string and returns with the first match.
 func RegExp(regexpStr string) *Parser {
