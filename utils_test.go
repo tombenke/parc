@@ -1,6 +1,7 @@
 package parc
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -28,25 +29,30 @@ func TestAnyStr(t *testing.T) {
 }
 
 func TestInteger(t *testing.T) {
+	testCases := []TestCase{
+		TestCase{Input: "42", ExpectedResult: Result(int(42))},
+		TestCase{Input: "+41", ExpectedResult: Result(int(41))},
+		TestCase{Input: "-24", ExpectedResult: Result(int(-24))},
+		TestCase{Input: "0", ExpectedResult: Result(int(0))},
+		TestCase{Input: "-0", ExpectedResult: Result(int(0))},
+		TestCase{Input: "+0", ExpectedResult: Result(int(0))},
+	}
 
-	numInput := "42"
-	expectedIndex := 2
-	expectedResult := Result(int(42))
-	expectedError := error(nil)
+	for _, tc := range testCases {
+		newState := Integer.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results)
+		require.False(t, newState.IsError)
+	}
 
-	newState := Integer.Parse(&numInput)
+	testErrorCases := []TestCase{
+		TestCase{Input: "some text", ExpectedResult: Result(nil)},
+	}
 
-	require.Equal(t, expectedResult, newState.Results)
-	require.Equal(t, expectedIndex, newState.Index)
-	require.Equal(t, expectedError, newState.Err)
-	require.False(t, newState.IsError)
-
-	textInput := "Hello World!"
-
-	newState = Integer.Parse(&textInput)
-
-	require.Equal(t, 0, newState.Index)
-	require.True(t, newState.IsError)
+	for _, tc := range testErrorCases {
+		newState := Integer.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results)
+		require.True(t, newState.IsError)
+	}
 }
 
 func TestLetters(t *testing.T) {
@@ -96,4 +102,52 @@ func TestRestOfLine(t *testing.T) {
 	newState = RestOfLine.Parse(&multiLine)
 	require.Equal(t, singleLine, newState.Results.(string))
 	require.False(t, newState.IsError)
+}
+
+func TestSign(t *testing.T) {
+	testCases := []TestCase{
+		TestCase{Input: "", ExpectedResult: "+"},
+		TestCase{Input: "+", ExpectedResult: "+"},
+		TestCase{Input: "-", ExpectedResult: "-"},
+	}
+
+	for _, tc := range testCases {
+		newState := Sign.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results)
+		require.False(t, newState.IsError)
+	}
+}
+
+func TestExponent(t *testing.T) {
+	testCases := []TestCase{
+		TestCase{Input: "", ExpectedResult: Result(int(0))},
+		TestCase{Input: "e1", ExpectedResult: Result(int(1))},
+		TestCase{Input: "E0", ExpectedResult: Result(int(0))},
+		TestCase{Input: "e-2", ExpectedResult: Result(int(-2))},
+		TestCase{Input: "E+3", ExpectedResult: Result(int(+3))},
+	}
+
+	for _, tc := range testCases {
+		newState := Exponent.Parse(&tc.Input)
+		fmt.Printf("\nresult: %+v\n", newState.Results)
+		require.Equal(t, tc.ExpectedResult, newState.Results)
+		require.False(t, newState.IsError)
+	}
+}
+func TestRealNumber(t *testing.T) {
+	testCases := []TestCase{
+		TestCase{Input: "0.", ExpectedResult: Result(float64(0.))},
+		TestCase{Input: "0.0", ExpectedResult: Result(float64(0.))},
+		TestCase{Input: "3.1415", ExpectedResult: Result(float64(3.1415))},
+		TestCase{Input: "-3.1415", ExpectedResult: Result(float64(-3.1415))},
+		TestCase{Input: "-3.14E2", ExpectedResult: Result(float64(-314.))},
+		TestCase{Input: "-2500.e-2", ExpectedResult: Result(float64(-25.))},
+		TestCase{Input: "2500.e0", ExpectedResult: Result(float64(2500.))},
+	}
+
+	for _, tc := range testCases {
+		newState := RealNumber.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results)
+		require.False(t, newState.IsError)
+	}
 }
