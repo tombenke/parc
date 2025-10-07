@@ -324,7 +324,7 @@ This section introduces those build-in parsers that helps to construct more and 
 The `SequenceOf(parsers ...*Parser)` executes a sequence of parsers against a parser state one-by-one, in the order of definition.
 The composit parser will succeed if all the parsers could match against the input string.
 
-Run [the SequenceOf example](SequenceOf/SequenceOf/SequenceOf.go): `go run tutorial/SequenceOf/SequenceOf.go`:
+Run [the SequenceOf example](SequenceOf/SequenceOf.go): `go run tutorial/SequenceOf/SequenceOf.go`:
 
 ```go
 	input := "Hello Wonderful World!"
@@ -341,7 +341,7 @@ Run [the SequenceOf example](SequenceOf/SequenceOf/SequenceOf.go): `go run tutor
 	// => inputString: 'Hello Wonderful World!', Results: [<nil> Hello   Wonderful World! Wonderful World!], Index: 22, Err: <nil>, IsError: false
 ```
 
-![SequenceOf parser](SequenceOf.svg)
+![SequenceOf parser](SequenceOf/SequenceOf.svg)
 
 ### Choice
 
