@@ -598,17 +598,20 @@ Az alábbi ábra azt az esetet szemlélteti, amikor az input string `"diceroll:2
 
 ![Chain parser](Chain/Chain.svg)
 
-----------------------------------------------------------------------------------------
 
-## Debugging
+## Hibakeresés
 
-In case of higher order, complex parsers it is not trivial to identify the bugs, so there is a built-in debugging feature of the parc package.
+Magasabb rendű, komplex parserek esetén nem triviális a hibák azonosítása,
+ezért a parc csomag tartalmaz egy beépített hibakeresési (debugging) funkciót.
 
-The parser can print debug information during the parsing, at several levels of details, that can be controlled by the `parc.Debug(level int)` function.
+A parser képes hibakeresési információt kiírni a parszolás során, több részletességi szinten,
+amelyek a `parc.Debug(level int)` függvénnyel szabályozhatók.
 
-The higher the level, the more detailed information will be printed out. `level=0` means: _no debug will be printed_.
+Minél magasabb a szint, annál részletesebb információ kerül kiírásra.
+A `level=0` azt jelenti: _nem történik hibakeresési kiírás_.
 
-Here are some examples of the different debug levels, that is printed out, running [the Choice parser example](tutorial/Choice/Choice.go):
+Íme néhány példa a különböző hibakeresési szintekre, amelyek [a Choice parser példa](tutorial/Choice/Choice.go) futtatásakor kiíródnak:
+
 
 ```bash
 go run tutorial/Choice/Choice.go
