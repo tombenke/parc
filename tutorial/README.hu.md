@@ -383,6 +383,8 @@ then returns the first successful result if there is any.
 	// => inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
 
+![Choice parser](Choice/Choice.svg)
+
 ### Count
 
 This section summarizes those parsers that makes possible to repeat a given parser to match several times continually.
@@ -448,6 +450,8 @@ Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/Coun
 
 	// => inputString: 'Hello Hello Hello Hello Hello ', Results: [Hello  Hello  Hello  Hello  Hello ], Index: 30, Err: <nil>, IsError: false
 ```
+
+![CountMinMax parser](CountMinMax/CountMinMax.svg)
 
 The following parsers can be taken as a shortcut of the `Count...()` counterparts.
 
