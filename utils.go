@@ -31,7 +31,7 @@ var (
 	// Letters is a parser that matches one or more letter characters with the target string
 	Letters = CondMin(IsAsciiLetter, 1).As("Letters")
 
-	// Digit is a parser that matches a singl digit character with the target string
+	// Digit is a parser that matches a single digit character with the target string
 	Digit = Cond(IsDigit).As("Digit")
 
 	// Digits is a parser that matches one or more digit characters with the target string

@@ -1,111 +1,111 @@
-# parc tutorial
+# Bevezetés a parc használatába
 
-## Introduction
+## Bevezetés
 
-Welcome to the exciting world of Parser Combinators!
-This approach can radically change how you think about language processing, compilers, and parsing in general.
+Üdvözöllek a parser kombinátorok (Parser Combinators) izgalmas világában!
+Ez a megközelítés gyökeresen megváltoztathatja azt, ahogyan a nyelvi feldolgozásról, a fordítóprogramokról és a parszolásról gondolkodsz.
 
-### What is a Parser Combinator?
+### Mi az a Parser Kombinátor?
 
-A Parser Combinator is a design pattern in software development where parsers are treated as first-class functions or objects.
-Instead of generating a single, monolithic piece of code for the entire grammar, we write small, atomic parsers
-(e.g., recognizing a number, a comma, or an identifier).
-These small parsers are then composed into complex, functional parsers using combinators (higher-order functions).
+A Parser Kombinátor egy olyan tervezési minta a szoftverfejlesztésben,
+ahol a parserek első osztályú függvények vagy objektumok.
+Ahelyett, hogy egyetlen monolitikus kódot generálnánk a teljes nyelvtanhoz,
+kis, atomi parsereket (pl. egy szám, egy vessző, vagy egy azonosító felismerése) írunk,
+amelyeket aztán kombinátorok (magasabb rendű függvények) segítségével fűzünk össze komplex, funkcionális parserekké.
 
-The combinators typically implement fundamental language structures like:
+A kombinátorok a következők:
 
-- __Sequence__ (`A then B`): For example: Recognize an opening parenthesis, followed by an expression.
+- __Szekvencia__ (`A majd B`): Például: Először felismer egy nyitó zárójelet, majd egy kifejezést.
 
-- __Alternative__ (`A or B`): For example: Recognize an identifier or a numeric literal.
+- __Alternatíva__ (`A vagy B`): Például: Felismer egy azonosítót vagy egy numerikus literált.
 
-- __Repetition__ (`0 or more A`): For example: Recognize zero or more spaces.
+- __Ismétlés__ (`0 vagy több A`): Például: Felismer nulla vagy több szóközt.
 
-This method allows us to express our grammar directly and declaratively within our code.
+Ez a módszer lehetővé teszi, hogy a nyelvtanunkat közvetlenül és deklaratívan, a kódunkban fejezzük ki.
 
-### The Placement of parser combinators on the parser spectrum
+### A parser combinátorok helye a parserek palettáján
 
-On the spectrum of parsers and compilers, parser combinators belong to the family of recursive descent parsers.
+A parserek és fordítóprogramok spektrumán a parser kombinátorok a rekurzív leszálló parserek családjába tartoznak.
 
-- Generated Parsers
-  (e.g., [Yacc](https://hu.wikipedia.org/wiki/Yacc)/[Bison](https://www.gnu.org/software/bison/), [ANTLR](https://www.antlr.org/)):
-  These are the fastest.
+- Generált Parserek
+  (pl. [Yacc](https://hu.wikipedia.org/wiki/Yacc)/[Bison](https://www.gnu.org/software/bison/), [ANTLR](https://www.antlr.org/)):
+  Ezek a leggyorsabbak.
 
-  They require an external grammar definition file (e.g., [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form)),
-  which an external tool (generator) compiles into optimized code.
-  They are strong at handling complex, [LR(k)](https://en.wikipedia.org/wiki/LR_parser) languages.
+  Igényelnek egy külső nyelvtani definíciós fájlt (pl. [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form)),
+  amit egy külső eszköz (generátor) fordít le optimalizált kóddá.
+  Erősek a komplex, [LR(k)](https://en.wikipedia.org/wiki/LR_parser) nyelvek kezelésében.
 
-- Hand-Written [Recursive Descent Parsers](https://en.wikipedia.org/wiki/Recursive_descent_parser): The close relative of parser combinators.
-  Here, you write the logic by hand using if/else statements and function calls.
+- Kézzel Írt [Rekurzív Leszálló Parserek](https://en.wikipedia.org/wiki/Recursive_descent_parser): A parser kombinátorok közeli rokona.
+  Itt a logikát kézzel írod meg if/else és függvényhívásokkal.
 
-- [Parser Combinators](https://en.wikipedia.org/wiki/Parser_combinator): They are an abstraction of hand-written recursive descent parsers.
-  They maintain flexibility, but the combinators themselves handle the conditional logic and recursion.
-  No external generator is needed; the entire grammar resides in the host language's code (e.g., Go, Haskell).
+- [Parser Kombinátorok](https://en.wikipedia.org/wiki/Parser_combinator): A kézzel írt rekurzív leszálló parserek absztrakciója.
+  Megőrzik a rugalmasságot, de a kombinátorok maguk végzik a feltételes logikát és a rekurziót.
+  Nincs szükség külső generátorra, a teljes nyelvtan a gazdanyelv (pl. Go, Haskell) kódjában van.
 
-### Advantages and Disadvantages
+### Előnyök és Hátrányok
 
-#### Advantages (When to Use Them)
+#### Előnyök (Mikor használd?)
 
-- Declarative Grammar: The grammar definition is often very concise, highly readable, and directly mirrors the linguistic rules.
+- Deklaratív Nyelvtan: A nyelvtan leírása rendkívül rövid, olvasható és közvetlenül tükrözi a nyelvi szabályokat.
 
-- Modular and Composable: Small parsers are reusable and easy to test.
-  Changing one grammatical rule typically doesn't affect the entire system.
+- Moduláris és Komponálható: A kis parserek újrahasznosíthatók és könnyen tesztelhetők.
+  Egy nyelvtani szabály megváltoztatása nem érinti a teljes rendszert.
 
-- Easy Debugging: Since there is no generated code, you can use your standard debugger
-  to step directly through the logic of your grammatical rules (combinators).
+- Könnyű Hibakeresés: Mivel nincs generált kód, a debugger közvetlenül a nyelvtani szabályok (kombinátorok) logikájában állítható meg.
 
-- Fast Development: For small to medium projects, the development time is very short,
-  as there's no separate build step required.
+- Gyors Fejlesztés: Kis/közepes projektek esetében a fejlesztési idő rendkívül rövid, mivel nincs szükség külön build lépésre.
 
-Parser combinators are ideal for:
+A parser kombinátorok ideálisak:
 
-- Configuration Languages: Parsing simple YAML-like or DSL (Domain Specific Language) files.
-- Protocols: Parsing custom communication protocols.
-- Education/Prototyping: Quickly building language prototypes and understanding the logic of parsing.
+- Konfigurációs nyelvek: Egyszerű YAML-szerű vagy DSL (Domain Specific Language) fájlok elemzéséhez.
+- Protokollok: Egyedi kommunikációs protokollok parszolásához.
+- Oktatás/Prototípusok: Nyelvek gyors prototípusának elkészítéséhez és a parszolás logikájának elsajátításához.
 
-#### Disadvantages (When Not to Use Them)
+#### Hátrányok (Mikor ne használd?)
 
-- Performance: They are generally slower than generated parsers (like LALR(1) parsers)
-  because they involve more internal function calls and recursion.
+- Teljesítmény: Általában lassabbak, mint a generált parserek (pl. LALR(1) parserek),
+  mivel több belső függvényhívást és rekurziót tartalmaznak.
 
-- Left-Recursion Handling: Simple parser combinators often cannot inherently handle immediate left-recursion
-  (e.g., `Expr -> Expr + Term`), leading to infinite loops.
-  Special, more complex combinators are required to solve this.
+- Bal-rekurzió Kezelés: Az egyszerű parser kombinátorok gyakran alapból nem tudják kezelni a közvetlen bal-rekurziót
+  (pl. `Expr -> Expr + Term`), ami végtelen ciklust okoz.
+  Speciális kombinátorokra van szükség ennek megoldására.
 
-- Large Languages: The performance gap can become a significant drawback when parsing very large,
-  complex languages (e.g., the front-end of a C++ compiler).
+- Nagy Nyelvek: Nagyon nagy, komplex nyelvek (pl. C++) esetén a teljesítmény-különbség hátrányossá válhat.
 
-You should avoid them if:
+Ne használd, ha:
 
-- Raw speed is the absolute priority, and the grammar is already stable
-  (e.g., parsing JSON, XML, or SQL, where highly optimized libraries already exist).
-- The grammar is excessively complex and massive (e.g., the front-end of a C++ compiler).
+- Pusztán sebességre van szükség, és a nyelvtan már stabil (pl. egy JSON, XML vagy SQL parszolásánál,
+  ahol kész, optimalizált könyvtárak léteznek).
+- A nyelvtan kifejezetten összetett és hatalmas (pl. egy C++ fordító front-endje).
 
-## The parc parser combinator package
+## A parc parser combinator csomag
 
-### The Parser Objects
+### The Parser Objektumok
 
-The parc package provides a set of parser objects, that are building blocks, such as: `Str()`, `Count()`, `SequenceOf()`, `Choice()`, etc.
-These building blocks can be combined to build up an application that is able to interpret the content of an
-input string according to the syntactic rules that is defined via the combination of the parser objects.
+A parc csomag egy sor parser objektumot bocsájt rendelkezésre, amelyek építőelemekként funkcionálnak, mint például:
+`Str()`, `Count()`, `SequenceOf()`, `Choice()`, stb.
 
-So the syntactic rules are coded by which building blockes used, and how they are combined with each other.
+Ezek az építőelemek kombinálhatók egymással, abból a célból, hogy létrehozzanak egy olyan alkalmazást,
+amely képes értelmezni egy bemeneti string tartalmát a parser objektumok kombinációjával definiált szintaktikai szabályok szerint.
 
-The individual building block parsers as well as the composition of them will provide a method called `Parse()`
-that receives the input string to parse, and produces the results of parsing.
+Így a szintaktikai szabályok azzal vannak kódolva, hogy milyen építőelemeket használunk, és hogyan kombináljuk őket egymással.
 
-In the following example: `parc.Str("Hello").Parse("Hello World!")`,
-the input string is `"Hello World!"` and the `Str("Hello")` parser
-will match the first word of the input string from the beginning until the first space character that is `"Hello"`.
+Az egyedi építőelem-parserek, valamint azok kompozíciója mind rendelkeznek egy `Parse()` nevű metódussal,
+amely megkapja az elemzés tárgyát képező bemeneti stringet, és előállítja az elemzés eredményeit.
 
-Every simple, building block parser applies a specific rule, and the call of the `Parse()` method will be successful,
-if this rule can be applied to the input, or the result will be an error in case the rule could not apply.
+Például a `parc.Str("Hello").Parse("Hello World!")` kifejezés esetében, a bemeneti string a `"Hello World!"`, és a `Str("Hello")` a parser,
+aminek meghívjuk a `Parse()` metódusát. Ez a parser illeszkedni fog a bemeneti string első szavára,
+a kezdetétől az első szóköz karakterig, ami pontosan a `"Hello"` szó.
 
-The parsing starts at the beginning of the input string and may end at the end
-or somewhere in between the beginning and the end of the input string.
+Minden egyszerű, építőelem-parser egy specifikus szabályt alkalmaz, és a `Parse()` metódus hívása sikeres lesz, abban az esetben,
+ha ez a szabály alkalmazható a bemenetre. Ellenkező esetben hibát eredményez, ha a szabályt nem lehetett alkalmazni.
+
+Az elemzés a bemeneti string elején kezdődik, és végződhet a végén, vagy valahol a bemeneti string eleje és vége között.
 
 ### The Parser State
 
-In fact the return value of the `Parse()` method will be a [`ParserState`](../state.go):
+A `Parse()` metódus visszatérő értéke valójában egy [`ParserState`](../state.go) objektum,
+ami a parser aktuális állapotát reprezentálja, és a következőképpen néz ki:
 
 ```go
 // ParserState represents an actual state of a parser
@@ -117,23 +117,24 @@ type ParserState struct {
 	IsError     bool
 }
 ```
-The parser state holds a reference to the original input string,
-the actual index of the character in the input string after the execution of the method,
-the `Error` property that is either `nil` or an `error`,
-and a helper `bool` property that is called `IsError` that will be `true` in case the `Error` is not `nil`.
 
-The `Results` property has `Result` type, that is actually `any`.
-In some cases it holds a single value, but it may also hold an `[]Result` array, depending on the type of parser used.
+A `ParserState` objektum tartalmaz egy referenciát az eredeti input stringre,
+egy index értéket arra a karakterre, ami a végrehajtást követően a sorok következő pozíció.
+Az `Error`  property `nil` lehet, vagy pedig egy `error`, attól függően, hogy sikeres volt-e az utolsó művelet,
+továbbá egy `IsError` nevű `bool` property-t is tartalmaz, ami akkor `true`, ha az `Error` értéke nem `nil`.
 
-As the elementary parsers are successfully executed on the input string,
-the index will be moved along it until it reaches the end of the string.
-When a parser fails, the index will point to the same position that was before the last call.
+A `Results` property típusa `Result`, ami tulajdonképpen az `any` típus.
+Bizonyos esetekben ez egyetlen értéket hordoz, de hordozhatja a`[]Result` array-t is, annak függvényében, hogy a parser milyen fajtájú.
 
-The following example will apply the `Str()` parser to the input string.
-This parser has a parameter, that is a literal string,
-and it tries to match this string to the input string at the actual position, that is `0` at the moment:
+Ahogyan az elemi parserek sikeresen végrehajtódnak az input stringen, az index úgy halad előre, mindaddig, amíg el nem éri a string végét.
+Amennyiben a parser sikertelen, tehát nem tudja illeszteni az elvárt mintázatot, abban az esetben az index visszaáll arra a pozícióra,
+ahol a sikertelen parser elem a kezdésekor állt.
 
-Run the [Str example](Str/Str.go): `go run tutorial/Str/Str.go`:
+A soron következő példa az `Str()` parser-t fogja végrehajtani input string-re.
+Ez a parser egy paramétert vár, ami egy string literál, és ez fogja meghatározni, hogy betűről-betűre milyen egyezést vár el a végrehajtásakor.
+A példában a kiinduló pozíció a `0` indexű karakter:
+
+Futtassuk az [Str példát](Str/Str.go): `go run tutorial/Str/Str.go`:
 
 ```go
 	input := "Hello World"
@@ -143,10 +144,10 @@ Run the [Str example](Str/Str.go): `go run tutorial/Str/Str.go`:
 	// >> inputString: 'Hello World', Results: Hello World, Index: 11, Err: <nil>, IsError: false
 ```
 
-The result will be the matched string, and the new (`Index: 11,`) position points to the end of the input string, and no errors occured.
+Az eredmény a sikeresen illeszkedő string, az új (`Index: 11,`) pozíció pedig a string végére fog mutatni, és nem kapunk hibát sem.
 
-If we try to apply a non-matching string the resulted state will hold an error,
-the `Results` property will be `nil`, and the `Index` property remains `0`:
+Ha egy olyan mintát próbálunk az inputra illeszteni, ami nem egyező, akkor az `Error` egy hibát fog tartalmazni a végehajtást követően, 
+a `Results` property értéke `nil` lesz, az `Index` property pedig  `0` marad:
 
 ```go
 	resultState = parc.Str("Will not match").Parse(&input)
@@ -154,25 +155,24 @@ the `Results` property will be `nil`, and the `Index` property remains `0`:
 	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Str: could not match 'Will not match' with 'Hello World', IsError: true
 ```
 
-The parc package provides a set of different parsers.
-These parsers can be classified into three categories:
+A parc package egy csomó, különféle parsert biztosít számunkra.
+Ezeket a parsereket három kategóriába sorolhatjuk:
 
-- primitives,
-- conditionals,
-- combinators.
+- _elemi_ parserek (primitives),
+- _feltételes_ parserek (conditionals),
+- _kombinátor_-ok (combinators).
 
-## Primitives
+## Primitívek
 
-The primitive parsers are the most basic building blocks.
+A primitív parserek a legelemibb, és legegyszerűbb építő elemek.
 
-They makes possible to match specific literal values,
-that are single characters or strings.
+Olyan érték illesztését vizsgálják, amelyek egyetlen karakterből, vagy egy string literál értékből állnak.
 
-The `Str(s string)` parser matches a fixed string literal value given as parameter, with the target string exactly one time.
+A `Str(s string)` parser a paraméterként megadott string literal értékét próbálja illeszteni, betűről-betűre, pontosan egyszer.
 
-The `Chr(s string)` matches a single character. The parameter must be a one-character-long string.
+A `Chr(s string)` egyetlen karaktert próbál illeszteni. A parameternek egyetlen karakter hosszúságú string-nek kell lennie.
 
-Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
+Futtassuk [a Char példát](Char/Char.go): `go run tutorial/Char/Char.go`:
 
 ```go
 	input := "Hello World"
@@ -185,11 +185,11 @@ Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
 	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Could not match '_' with 'Hello World', IsError: true
 ```
 
-Every parser object has an `.As(label string)` member function, that assigns a label to it.
-This label helps the debugging, because this will be printed out instead of the original, native name of the parser.
+Minden parser objektum implementál egy `.As(label string)` member function-t, ami egy cimkét rendel hozzá a parserhez.
+Ez a cimke segíti a fejlesztési, hibakeresési folyamatot, mert ez íródik ki a parser eredeti neve helyett, amennyiben használtuk cimke hozzáadására.
 
-There are some predefined `Char()` and `Str()` primitive parsers that often used.
-These exported as public variables, and not functions:
+Létezik néhány, előre definiált, gyakran használatos `Char()` és `Str()` primitive parser.
+Ezek publikusa változóként érhetőek egy a package-ből, és nem függvényként:
 
 ```go
 // Newline matches a space character ` `
@@ -205,10 +205,10 @@ var Tab = Char("\t").As("Tab")
 var Crlf = Str("\r\n").As("Crlf")
 ```
 
-The `RegExp(regexpStr string)` parser tries to match a regular expression.
-Its parameter is a string, that holds a regular expression to match.
+A `RegExp(regexpStr string)` parser egy reguláris kifejezést próbál illeszteni.
+A paramétere egy string, ami a reguláris kifejezést tartalmazza, amit illeszteni akarunk.
 
-Run [the RegExp example](RegExp/RegExp.go): `go run tutorial/RegExp/RegExp.go`:
+Futtassuk [a RegExp példát](RegExp/RegExp.go): `go run tutorial/RegExp/RegExp.go`:
 
 ```go
 	input := "Hello World"
@@ -218,24 +218,28 @@ Run [the RegExp example](RegExp/RegExp.go): `go run tutorial/RegExp/RegExp.go`:
 	// => inputString: 'Hello World', Results: Hello World, Index: 11, Err: <nil>, IsError: false
 ```
 
-The following two parsers are used to strictly define the beginning and the end of parsing,
-and makes sure if the complete input string is fully processed:
+A soron következő két primitív parser azt a célt szolgálja, hogy szigorúan elvárjuk, a parsolás elejét és végét,
+tehát olyan parser-eket tudunk a segítségükkel írni, amelyeknek a tejles input stringet le kell fedniük, az elejétől a végéig.
 
-- The `StartOfInput()` parser that only succeeds when the parser is at the beginning of the input.
-- The `EndOfInput()` is a parser that only succeeds when there is no more input to be parsed.
+- A `StartOfInput()` parser csak akkor lesz sikeres, ha a parser az input string legelső karakterén áll.
+- A `EndOfInput()` végrehajtása csak akkor lesz sikeres, ha már nincs több karakter az input végén, vagyis az index az utolsó utáni helyre mutat.
 
-The `Rest()` returns the remaining input.
+A `Rest()` parser bármire egyezést mutat amit talál az aktuális pozíció és az input vége között.
 
-See also the [`SequenceOf()` parser](https://github.com/tombenke/parc/tree/master/tutorial#sequenceof)
-for the application of these last three parsers.
+A [`SequenceOf()` parser](https://github.com/tombenke/parc/tree/master/tutorial#sequenceof)
+esetében láthatunk ezen primitívek alkalmazására példát.
 
-## Conditionals
+----------------------------------------------------------------------------------------
 
-The conditional parsers get a logic function that defines a criteria against a rune value.
-This function matches the next single rune from the input string and returns with a boolean value.
-This return value is `true` if the rune satisfies the criteria, otherwise it returns `false`.
+## Feltételes parser-ek
 
-This is an example for a condition function, that tests if rune is ASCII space, newline or tab
+A feltételes parserek egy logikai függvényt várnak, ami egy rune értékkel szembeni logikai feltételt határoz meg. 
+A feltételes parser az input string soron következő rune-jával hívja ezt a függvényt,
+ami vizsgálja a logikai feltétel teljesülését, és egy bool értékkel tér vissza.
+Ha a rune kielégíti a logikai feltételt, akkor a függvény visszatérő értéke `true` lesz, ellenkező esetben pedig `false`.
+
+Az alábbi példa egy ilyen feltétel vizsgáló függvényt mutat be, ami azt vizsgálja, hogy egy rune azonos-e
+az ASCII space karakter, az újsor (newline) karakter, vagy a tab karakter valamelyikével.
 
 ```go
 func IsWhitespace(r rune) bool {
@@ -243,7 +247,7 @@ func IsWhitespace(r rune) bool {
 }
 ```
 
-The parc package defines a handful of frequently used condition function, such as:
+A parc package néhány hasznos, gyakran használatos feltételes függvényt definiál, úgymint:
 
 - `IsAlphabetic (alias IsAsciiLetter)`,
 - `IsDigit (alias IsDecimalDigit)`,
@@ -258,14 +262,14 @@ The parc package defines a handful of frequently used condition function, such a
 - `IsCarriageReturn`,
 - `IsAnyChar`.
 
-There are several versions of the conditional parser, according to the number of runes we want to match in a single step:
+Többfajta feltételes parser létezik, attól függően, hogy hány rune-át akarunk egyetlen lépésben illeszteni a logikai függvény segítségével:
 
-- `Cond(conditionFn func(rune) bool)`: parses a single rune;
-- `CondMin(conditionFn func(rune) bool, minOccurences int)` parses runes at least `minOccurences` number of runes;
+- `Cond(conditionFn func(rune) bool)`: egyetlen rune-át elemez;
+- `CondMin(conditionFn func(rune) bool, minOccurences int)` legkevesebb `minOccurences` számú rune-át illeszt;
 - `CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int)`
-  parses runes at least `minOccurences` number of runes but maximum `maxOccurences` number of runes.
+  ez a parser legkevesebb `minOccurences` számú rune-át vár, de legfeljebb `maxOccurences` számút fog illeszteni.
 
-Run [the Cond example](Cond/Cond.go): `go run tutorial/Cond/Cond.go`
+Futtassuk [a Cond példát](Cond/Cond.go) ami egyetlen ASCII letter karaktert vár: `go run tutorial/Cond/Cond.go`
 
 ```go
 	input := "Hello World"
@@ -276,7 +280,7 @@ Run [the Cond example](Cond/Cond.go): `go run tutorial/Cond/Cond.go`
 	// => inputString: 'Hello World', Results: H, Index: 1, Err: <nil>, IsError: false
 ```
 
-Run [the CondMin example](CondMin/CondMin.go): `go run tutorial/CondMin/CondMin.go`:
+Futtassuk [a CondMin példát](CondMin/CondMin.go): `go run tutorial/CondMin/CondMin.go`:
 
 ```go
 	input := "Hello World"
@@ -297,7 +301,13 @@ Run [the CondMin example](CondMin/CondMin.go): `go run tutorial/CondMin/CondMin.
 	// => inputString: inputString: 'Hello World', Results: <nil>, Index: 0, Err: CondMin: 5 number of found are less then minOccurences: 8, IsError: true
 ```
 
-Run [the CondMinMax example](CondMin/CondMinMax.go): `go run tutorial/CondMinMax/CondMinMax.go`:
+Az első esetben legalább 1 ASCII letter karaktert próbál illeszteni, sikeresen, mert a `Hello` karakterei kielégítik a feltételt, és az illesztés befejeződik az első szóköz, karakternél.
+
+A második esetben 8 ASCII letter karaktert várunk, ami nem tud teljesülni, mert az első szóközig mindössze 5 ilyen karakter található, ezért itt hibát kapunk eredményül.
+
+
+Futtassuk [a CondMinMax példát](CondMin/CondMinMax.go) ami minimum egy, de legfeljebb 10 ASCII letter karaktert próbál illeszteni, sikeresen:
+`go run tutorial/CondMinMax/CondMinMax.go`:
 
 
 ```go
@@ -311,20 +321,19 @@ Run [the CondMinMax example](CondMin/CondMinMax.go): `go run tutorial/CondMinMax
 	// => inputString: 'Hello World', Results: Hello, Index: 5, Err: <nil>, IsError: false
 ```
 
-## Combinators
+## Kombinátorok
 
-The combinators make possible to combine parsers to build up higher level of parsers.
-The members of the combination can be primitive parser as well as complex parsers,
-that are constructed out of other simple and/or complex parsers.
+A kombinátorok magasabb rendű parserek létrehozását teszik lehetővé.
+Ilyen magasabb rendű parsereket elemi parserekből, és más, magasabb rendű parserek _"kombinálásával"_ tudunk építeni.
 
-This section introduces those build-in parsers that helps to construct more and more complex parser structures.
+Ez az alfejezet azokat a beépített parsereket ismerteti, amivel egyre bonyolultabb parser struktúrákat tudunk felépíteni.
 
 ### SequenceOf
 
-The `SequenceOf(parsers ...*Parser)` executes a sequence of parsers against a parser state one-by-one, in the order of definition.
-The composit parser will succeed if all the parsers could match against the input string.
+A `SequenceOf(parsers ...*Parser)` parserek sorozatát hajtja végre egyenként, balról jobbra haladva, a definiálás sorrendjében, egy parser state-en.
+Az így definiált kompozit parser akkor lesz sikeres, ha a benne felsorolt összes parser sikeresen végre tud hajtódni.
 
-Run [the SequenceOf example](SequenceOf/SequenceOf.go): `go run tutorial/SequenceOf/SequenceOf.go`:
+Futtassuk [a SequenceOf példát](SequenceOf/SequenceOf.go): `go run tutorial/SequenceOf/SequenceOf.go`:
 
 ```go
 	input := "Hello Wonderful World!"

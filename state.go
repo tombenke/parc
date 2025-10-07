@@ -63,7 +63,7 @@ func (ps ParserState) Consume(n int) ParserState {
 	return ps
 }
 
-// String returns with the string fromat of the parser state
+// String returns with the string format of the parser state
 func (ps ParserState) String() string {
 	return fmt.Sprintf("inputString: '%s', Results: %+v, Index: %d, Err: %+v, IsError: %+v", *ps.inputString, ps.Results, ps.Index, ps.Err, ps.IsError)
 }
