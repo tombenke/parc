@@ -9,7 +9,7 @@ youtube series of Low Byte Productions,
 the presentation of Jeremy Brown at GopherCon 2022: on _Parsing w/o Code Generators: Parser Combinators in Go with Generics_,
 and the [nom](https://docs.rs/nom/latest/nom/index.html) Rust parser combinator library.
 
-See the [tutorial/](tutorial/) to get started with this package.
+See the [tutorial/](tutorial/) to get started with this package. You can read this [tutorial in Hungarian](tutorial/README.hu.md) as well.
 
 Read the [parc package doc pages](https://pkg.go.dev/github.com/tombenke/parc).
 
