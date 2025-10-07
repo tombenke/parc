@@ -229,8 +229,6 @@ A `Rest()` parser bármire egyezést mutat amit talál az aktuális pozíció é
 A [`SequenceOf()` parser](https://github.com/tombenke/parc/tree/master/tutorial#sequenceof)
 esetében láthatunk ezen primitívek alkalmazására példát.
 
-----------------------------------------------------------------------------------------
-
 ## Feltételes parser-ek
 
 A feltételes parserek egy logikai függvényt várnak, ami egy rune értékkel szembeni logikai feltételt határoz meg. 
@@ -350,7 +348,9 @@ Futtassuk [a SequenceOf példát](SequenceOf/SequenceOf.go): `go run tutorial/Se
 	// => inputString: 'Hello Wonderful World!', Results: [<nil> Hello   Wonderful World! Wonderful World!], Index: 22, Err: <nil>, IsError: false
 ```
 
-![SequenceOf parser](SequenceOf.svg)
+![SequenceOf parser](SequenceOf/SequenceOf.svg)
+
+----------------------------------------------------------------------------------------
 
 ### Choice
 
