@@ -698,3 +698,118 @@ ERROR: letters: 0 number of found are less then minOccurences: 1 at index 0
     Err: <nil>, Result: '1342'
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
+
+## Tesztelés
+
+A parser kombinátorok alkalmazásának egyik előnye, hogy jól lehet struktúrálni az elemzőt,
+és elemi szintről kezdve lehet felépíteni az egyre komplexebb parsereket.
+
+Minden egyes parser önállóan is használható, és ez azt is jelenti, hogy ideális unit-testing szempontjából.
+
+Célszerű az inkrementális megközelítést alkalmazni, amikor egy komplexebb elemzőt készítünk, 
+és minden egyes elemi, és magasabb rendű "köztes" parser-t alaposan tesztelni.
+
+Ehhez a parc ad egy kis támogatást, a `TestCase` struktúrával, ami a következőképpen néz ki:
+
+```go
+// Generic TestCase struct to help writing test cases for sub-parsers
+type TestCase struct {
+	Input          string
+	ExpectedResult Result
+}
+```
+
+A [testing/](testing/) folder mutat néhány egyszerű példát arra, hogyan lehet ezeket a teszt eseteket megvalósítani.
+
+A [testing/parsers.go](testing/parsers.go) fileban találunk három egyszerű parser implementációt: `Number`, `IntNumber`, `RealNumber`.
+Ezen felül a file definiál egy `ASTNode` nevű struktúrát, amivé a parserek az eredményüket átalakítják a `Map()` metódus alkalmazásával.
+
+```go
+type NumberValue float64
+
+type ASTNode struct {
+	Tag   string
+	Value NumberValue
+}
+```
+
+A parserek a következőképpen néznek ki:
+
+```go
+var (
+	Number    = *parc.Choice(&RealNumber, &IntNumber)
+	
+	IntNumber = *parc.Map(parc.Integer, func(in parc.Result) parc.Result {
+		node := ASTNode{
+			Tag:   "INTEGER",
+			Value: NumberValue(in.(int)),
+		}
+		return parc.Result(node)
+	})
+
+	RealNumber = *parc.Map(parc.RealNumber, func(in parc.Result) parc.Result {
+		node := ASTNode{
+			Tag:   "REAL",
+			Value: NumberValue(in.(float64)),
+		}
+		return parc.Result(node)
+	})
+)
+```
+
+A [testing/parsers_test.go](testing/parsers_test.go) mutat néhány egyszerű példát arra,
+hogyan tudunk unit-teszteket készíteni az elemi, és az összetett parserekhez.
+
+Az alábbi kódrészlet az `IntNumber` parser tesztelését szemlélteti:
+
+```go
+package testing
+
+import (
+	"github.com/stretchr/testify/require"
+	"github.com/tombenke/parc"
+	"testing"
+)
+
+func TestIntNumber(t *testing.T) {
+
+	validTestCases := []parc.TestCase{
+		parc.TestCase{
+			Input:          "42",
+			ExpectedResult: ASTNode{Tag: "INTEGER", Value: NumberValue(42)},
+		},
+		parc.TestCase{
+			Input:          "12342",
+			ExpectedResult: ASTNode{Tag: "INTEGER", Value: NumberValue(12342)},
+		},
+	}
+
+	for _, tc := range validTestCases {
+		newState := IntNumber.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results.(ASTNode))
+		require.False(t, newState.IsError)
+	}
+
+	invalidInputs := []string{"?23", "AB23", "A33"}
+	for _, input := range invalidInputs {
+		newState := IntNumber.Parse(&input)
+		require.True(t, newState.IsError)
+	}
+}
+```
+
+Futtassuk a teszteket a következő paranccsal:
+
+```bash
+go test -v tutorial/testing/*
+
+=== RUN   TestIntNumber
+--- PASS: TestIntNumber (0.00s)
+=== RUN   TestRealNumber
+--- PASS: TestRealNumber (0.00s)
+=== RUN   TestNumber
+--- PASS: TestNumber (0.00s)
+PASS
+ok  	command-line-arguments	0.002s
+```
+

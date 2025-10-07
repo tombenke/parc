@@ -679,3 +679,118 @@ ERROR: letters: 0 number of found are less then minOccurences: 1 at index 0
     Err: <nil>, Result: '1342'
 inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
+
+## Testing
+
+One of the advantages of using parser combinators is that they allow the parser to be well-structured,
+enabling the construction of increasingly complex parsers starting from an elementary level.
+
+Each individual parser can be used independently, and this also means they are ideal for unit testing.
+
+When creating a more complex parser, it is advisable to use an incremental approach and thoroughly test every elementary
+and higher-order "intermediate" parser.
+
+The parc package provides a little support for this with the TestCase structure, which looks like this:
+
+```go
+// Generic TestCase struct to help writing test cases for sub-parsers
+type TestCase struct {
+	Input          string
+	ExpectedResult Result
+}
+```
+
+The [testing/](testing/) folder holds some simple example about how can we implement these test cases.
+
+In the [testing/parsers.go](testing/parsers.go) file there are three simple parser implementation: `Number`, `IntNumber`, `RealNumber`.
+Moreover this file contains the definition of structure named `ASTNode`, that the parser returns as a result, during the parsing.
+The parsers apply their `Map()` method to create these results.
+
+```go
+type NumberValue float64
+
+type ASTNode struct {
+	Tag   string
+	Value NumberValue
+}
+```
+
+The parsers look like this:
+
+```go
+var (
+	Number    = *parc.Choice(&RealNumber, &IntNumber)
+	
+	IntNumber = *parc.Map(parc.Integer, func(in parc.Result) parc.Result {
+		node := ASTNode{
+			Tag:   "INTEGER",
+			Value: NumberValue(in.(int)),
+		}
+		return parc.Result(node)
+	})
+
+	RealNumber = *parc.Map(parc.RealNumber, func(in parc.Result) parc.Result {
+		node := ASTNode{
+			Tag:   "REAL",
+			Value: NumberValue(in.(float64)),
+		}
+		return parc.Result(node)
+	})
+)
+```
+
+The [testing/parsers_test.go](testing/parsers_test.go) shows some simple example about hiw can we implement unit tests to the atomic level and higher order parsers.
+
+The following code fragment shows the testing of the `IntNumber` parser:
+
+```go
+package testing
+
+import (
+	"github.com/stretchr/testify/require"
+	"github.com/tombenke/parc"
+	"testing"
+)
+
+func TestIntNumber(t *testing.T) {
+
+	validTestCases := []parc.TestCase{
+		parc.TestCase{
+			Input:          "42",
+			ExpectedResult: ASTNode{Tag: "INTEGER", Value: NumberValue(42)},
+		},
+		parc.TestCase{
+			Input:          "12342",
+			ExpectedResult: ASTNode{Tag: "INTEGER", Value: NumberValue(12342)},
+		},
+	}
+
+	for _, tc := range validTestCases {
+		newState := IntNumber.Parse(&tc.Input)
+		require.Equal(t, tc.ExpectedResult, newState.Results.(ASTNode))
+		require.False(t, newState.IsError)
+	}
+
+	invalidInputs := []string{"?23", "AB23", "A33"}
+	for _, input := range invalidInputs {
+		newState := IntNumber.Parse(&input)
+		require.True(t, newState.IsError)
+	}
+}
+```
+
+Run the test cases with the following command:
+
+```bash
+go test -v tutorial/testing/*
+
+=== RUN   TestIntNumber
+--- PASS: TestIntNumber (0.00s)
+=== RUN   TestRealNumber
+--- PASS: TestRealNumber (0.00s)
+=== RUN   TestNumber
+--- PASS: TestNumber (0.00s)
+PASS
+ok  	command-line-arguments	0.002s
+```
+
