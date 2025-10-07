@@ -350,13 +350,13 @@ Futtassuk [a SequenceOf példát](SequenceOf/SequenceOf.go): `go run tutorial/Se
 
 ![SequenceOf parser](SequenceOf/SequenceOf.svg)
 
-----------------------------------------------------------------------------------------
-
 ### Choice
 
-The `Choice(parsers ...*Parser)` parser executes a sequence of parsers that alternatives relative to each other against a parser state.
-When parse the input, it tries to match these alternative parsers in the order of their definition,
-then returns the first successful result if there is any.
+A `Choice(parsers ...*Parser)` parser számára megadható a parserek egy sorozata, amelyek egymás alternatívái lehetnek az illesztés során.
+Amikor a kombinált parsert futtatjuk, akkor az egyes alternatívák, a definiálás sorrendjében megpróbálnak illeszkedni az inputra,
+és az első sikeresen illeszkedő alternatíva fogja visszaadni az eredményt.
+Ha egyik sem tud illeszkedni, akkor hibát kapunk eredményül.
+
 
 ```go
 	parc.Debug(0)
@@ -383,20 +383,22 @@ then returns the first successful result if there is any.
 	// => inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
 
+Az alábbi ábrán láthatjuk a fenti `Choice()` parser kód működését, a kétféle input esetében:
+
 ![Choice parser](Choice/Choice.svg)
 
 ### Count
 
-This section summarizes those parsers that makes possible to repeat a given parser to match several times continually.
-The number of occurences can be defined within the variants of the `Count...()` parsers.
+Ebben az alfejezetben azokat a kombinátorokat ismertetjük, amelyek képesek a beágyazott parsereket meghatározott alkalommal, ismétlődően illeszteni.
+Ezeknek a parsereknek a változatai mint a `Count...()` előtaggal kezdődnek.
 
-The `Count(parser *Parser, count int)` (alias `Times()`):
-tries to execute the parser given as a parameter exactly count times.
-Collects results into an array and returns with it at the end.
-It returns error if it could not run the parser exaclty count times.
-You can use Times parser, instead of Count since that is an alias of this parser.
+A `Count(parser *Parser, count int)` (alias `Times()`):
+megpróbálja az első paraméterként megadott parsert, a második paraméterként megadott számban, ismétlődően illeszteni az inputra.
+Az eredményeket egy array-ben fogjuk megkapni, sikeres illesztés esetén.
+Ha nem sikerült az elvárt számban, ismétlődően illeszteni a parsert, akkor hibát kapunk eredményül.
+A `Count()` helyett a `Times()` nevű kombinátort is használhatjuk. Ezek egymás alias-ai.
 
-Run [the Count example](Count/Count.go): `go run tutorial/Count/Count.go`:
+Futtassuk [a Count példát](Count/Count.go): `go run tutorial/Count/Count.go`:
 
 ```go
 	input := "Hello Hello Hello Hello Hello "
@@ -412,13 +414,14 @@ Run [the Count example](Count/Count.go): `go run tutorial/Count/Count.go`:
 	// => inputString: 'Hello Hello Hello Hello Hello ', Results: <nil>, Index: 0, Err: <nil>, IsError: true
 ```
 
-The `CountMin(parser *Parser, minOccurences int)` (alias `TimesMin()`):
-tries to execute the parser given as a parameter at least `minOccurences` times.
-Collects results into an array and returns with it at the end.
-It returns error if it could not run the parser at least `minOccurences` times.
-You can use `TimesMin()` parser, instead of `CountMin()` since that is an alias of this parser.
+A `CountMin(parser *Parser, minOccurences int)` (alias `TimesMin()`):
+Az első paraméterként megadott parsert próbálja illeszteni legalább annyiszor,
+mint amit a második paraméterben meghatározott `minOccurences` érték definiál.
+Az eredményeket egy array-be gyűjti. Ha nem sikerül az illesztést az elvárt minimális számban végrehajtani, akkor hibával tér vissza.
 
-Run [the CountMin example](CountMin/CountMin.go): `go run tutorial/CountMin/CountMin.go`:
+Alias-ként a `TimesMin()` megnevezést is használhatjuk a `CountMin()` helyett.
+
+Futtassuk [a CountMin példát](CountMin/CountMin.go): `go run tutorial/CountMin/CountMin.go`:
 
 ```go
 	input := "Hello Hello Hello Hello "
@@ -429,13 +432,14 @@ Run [the CountMin example](CountMin/CountMin.go): `go run tutorial/CountMin/Coun
 	// => inputString: 'Hello Hello Hello Hello ', Results: [Hello  Hello  Hello  Hello ], Index: 24, Err: <nil>, IsError: false
 ```
 
-The `CountMinMax(parser *Parser, minOccurences int, maxOccurences int)` (alias `TimesMinMax()`):
-tries to execute the parser given as a parameter at least `minOccurences` but maximum `maxOccurences` times.
-Collects results into an array and returns with it at the end.
-It returns error if it could not run the parser at least `minOccurences` times.
-You can use `TimesMinMax()` parser, instead of `CountMinMax()` since that is an alias of this parser.
+A `CountMinMax(parser *Parser, minOccurences int, maxOccurences int)` (alias `TimesMinMax()`):
+megpróbálja az első paraméterként megadott parsert annyiszor végrehajtani, ismételten, ahányszor azt a `minOccurences` és `maxOccurences` tartomány meghatároz.
+Az eredményeket egy array-ben gyűjti össze.
+Ha nem sikerül legalább `minOccurences` alkalommal illesztenie a parsert, akkor hibával tér vissza.
 
-Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/CountMinMax/CountMinMax.go`:
+A `TimesMinMax()` elnevezést is használhatjuk a `CountMinMax()` helyett.
+
+Futtassuk [a CountMinMax példát](CountMinMax/CountMinMax.go): `go run tutorial/CountMinMax/CountMinMax.go`:
 
 ```go
 	input := "Hello Hello Hello Hello Hello "
@@ -451,37 +455,48 @@ Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/Coun
 	// => inputString: 'Hello Hello Hello Hello Hello ', Results: [Hello  Hello  Hello  Hello  Hello ], Index: 30, Err: <nil>, IsError: false
 ```
 
+Az alábbi ábra azt szemléltei, hogy miként működik a `CountMinMax()` kombinátor, különböző paraméterezéssel:
+
 ![CountMinMax parser](CountMinMax/CountMinMax.svg)
 
-The following parsers can be taken as a shortcut of the `Count...()` counterparts.
+Az alábbiakban felsorolt parserek rövidített nevű aliasként használhatóak a gyakran alkalmazott `Count...()` parser variánsokra.
 
 - `ZeroOrOne(parser *Parser)` (alias `Optional`):
-  tries to execute the parser given as a parameter once.
-  It returns `nil` if it could not match, or a single result if match occured.
-  It never returns error either it could run the parser only once or could not run it at all.
-  This can be also defined as `CountMinMax(parser, 0, 1)`.
+  A paraméterként megadott parsert próbálja illeszteni legfeljebb egyszer.
+  Ha nem tudja egyszer sem illeszteni, akkor `nil` értékkel tér vissza. Ha sikerül illeszteni, akkor a sikeres illesztés eredménye lesz a visszatérő érték.
+  Soha nem ad vissza `error` értéket, akkor sem ha egyszer sem sikerült illesztenie a paraméterként megadott parsert.
+  A következőképpen is definiálható: `CountMinMax(parser, 0, 1)`.
 
 - `ZeroOrMore(parser *Parser)`:
-  tries to execute the parser given as a parameter, until it succeeds.
-  Collects the results into an array and returns with it at the end.
-  It never returns error either it could run the parser any times without errors or never.
-  This can be also defined as `CountMin(parser, 0)`.
+  A paraméterként megadott parsert próbálja illeszteni annyiszor, ahányszor csak lehetséges.
+  Az eredményeket egy array-ben gyűjti össze.
+  Soha nem ad vissza `error` értéket, akkor sem ha egyszer sem sikerült illesztenie a paraméterként megadott parsert.
+  A következőképpen is definiálható: `CountMin(parser, 0)`.
 
 - `OneOrMore(parser *Parser)`:
-  is similar to the ZeroOrMore parser,
-  but it must be able to run the parser successfuly at least once, otherwise it return with error.
-  It executes the parser given as a parameter, until it succeeds,
-  meanwhile it collects the results into an array then returns with it at the end.
-  This can be also defined as `CountMin(parser, 1)`.
+  Hasonló a `ZeroOrMore()` parserhez,
+  de ennek legalább egy alkalommal sikeresen kell illesztenie a parser-t, ezen felül annyiszor illeszti, ahányszor az lehetséges.
+  Az eredményeket egy array-ben gyűjti össze.
+  Ha egyszer sem sikerül illeszkedést detektálnia, abban az esetben hibával tér vissza.
+  A következőképpen is definiálható: `CountMin(parser, 1)`.
+
 
 ## Mapping
 
-Every parser object implements a `Map()` method, that must get a mapper function. This mapper function gets the latest result of the `Parse()` call, and returns any value that is made out of the raw input result.
+Minden parser objektum implementálja a `Map()` metódust, ami paraméterként egy mapper függvényt kap.
+A parser, a sikeres illesztést követően meghívja a `Map()` metódus számára definiált mapper függvényt, paraméterként átadva annak a parser eredményét.
+A mapper függvény feldolgozza és átalakíthatja ezt az eredmény, és amit visszaad, az lesz majd a parser végső eredménye.
+A `Map()` metódus tehát kulcs szerepet játszik abban, hogy a nyers eredményeket, amelyek lényegében az input string részei,
+átalakítsa olyan formára, ami a későbbi feldolgozás számára hasznosabb.
+Jellemzően ezzel a művelettel lehet összerakni egy absztrakt szintaxis fa (AST) csomópontjait,
+amit azután át lehet adni egy további feldolgozó rutinnak,
+pl.: kiíratni az eredetitől eltérő reprezentációs formátumban (JSON, YAML),
+de programok esetében közvetlenül végre is lehet hajtani (interpreter), vagy futtatható kódot lehet generálni belőle (compiler).
 
-In the following example the `Integer` parser matches one or more digit characters with the target string and returns with an `int` value.
-The conversion of the result to an integer is done in the `Map()` function of the parser:
+Az alábbi kódrészletben az `Integer` parser egy vagy több számjegy karaktert illeszt az input stringben, majd a végén, az átalakítást követően egy `int` típusú értékkel tér vissza.
+A típus konverziót a parser `Map()` metódusa számára definiált mapper függvény végzi:
 
-Run [the Map example](Map/Map.go): `go run tutorial/Map/Map.go`:
+Futtassuk [a Map példát](Map/Map.go): `go run tutorial/Map/Map.go`:
 
 ```go
 	integerMapperFn := func(in parc.Result) parc.Result {
@@ -499,19 +514,23 @@ Run [the Map example](Map/Map.go): `go run tutorial/Map/Map.go`:
 	// => inputString: '42', Results: 42, Index: 2, Err: <nil>, IsError: false
 ```
 
-## Chaining
+## Láncolás
 
-During the parsing process, at a given stage there can be cases, when it is necessary to change how to continue the parsing for the next section of the input string. In other words, we need to change the specific parser that we want to continue with the parsing.
-The scope of this change may valid until the end of the input string, or it may valid only for a specific part of the input string.
+A parszolási folyamat során egy adott szakaszban előfordulhat, hogy szükségessé válik annak megváltoztatása,
+ahogyan a bemeneti string következő szakaszának elemzését folytatjuk.
+Más szóval, meg kell változtatnunk azt a specifikus parsert, amivel folytatni akarjuk az elemzést.
 
-The `Chain(parser *Parser, parserMakerFn func(Result) *Parser)` makes possible to change the parser for the continuation of parsing process
-depending on the result of a parser.
+Ennek a változásnak a hatóköre érvényes lehet a bemeneti string végéig, vagy csak a bemeneti string egy meghatározott részére.
 
-This parser takes a function which receieves the last matched value and should return a parser.
-That parser is then used to parse the following input, forming a chain of parsers based on previous input.
-Chain is the fundamental way of creating contextual parsers.
+A `Chain(parser *Parser, parserMakerFn func(Result) *Parser)` metódus teszi lehetővé,
+hogy megváltoztassuk a parsert az elemzési folyamat folytatásához, a megelőző parser eredményétől függően.
 
-Run [the Chain example](Chain/Chain.go): `go run tutorial/Chain/Chain.go`:
+Ez a parser egy olyan függvényt vár, amely paraméterként megkapja az utoljára illesztett értéket, és egy parsert kell, hogy visszaadjon.
+Ezt a visszaadott parsert használja fel ezután a következő bemenet elemzésére, parser-láncot alkotva a korábbi bemenet alapján.
+
+A láncolás (chaining) a kontextuális parserek létrehozásának alapvető módja.
+
+Futtassuk [a Chain példát](Chain/Chain.go): `go run tutorial/Chain/Chain.go`:
 
 ```go
 	// There are several format of inputs,
@@ -574,6 +593,12 @@ Run [the Chain example](Chain/Chain.go): `go run tutorial/Chain/Chain.go`:
 
 	// => inputString: 'diceroll:2d8', Results: inputString: 'diceroll:2d8', Results: [2 d 8], Index: 12, Err: <nil>, IsError: false, Index: 9, Err: <nil>, IsError: false
 ```
+
+Az alábbi ábra azt az esetet szemlélteti, amikor az input string `"diceroll:2d8"`, és a `dicerollParser()`-t aktiválja a `Chain()`.
+
+![Chain parser](Chain/Chain.svg)
+
+----------------------------------------------------------------------------------------
 
 ## Debugging
 

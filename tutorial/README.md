@@ -374,6 +374,9 @@ then returns the first successful result if there is any.
 	// => inputString: '1342 234 45', Results: 1342, Index: 4, Err: <nil>, IsError: false
 ```
 
+The figure below shown how the same `Choice()` parser works with different inputs:
+
+
 ![Choice parser](Choice/Choice.svg)
 
 ### Count
@@ -442,6 +445,8 @@ Run [the CountMinMax example](CountMinMax/CountMinMax.go): `go run tutorial/Coun
 	// => inputString: 'Hello Hello Hello Hello Hello ', Results: [Hello  Hello  Hello  Hello  Hello ], Index: 30, Err: <nil>, IsError: false
 ```
 
+The next figure shows how the `CountMinMax()` combinator works with different parameters:
+
 ![CountMinMax parser](CountMinMax/CountMinMax.svg)
 
 
@@ -469,6 +474,13 @@ The following parsers can be taken as a shortcut of the `Count...()` counterpart
 ## Mapping
 
 Every parser object implements a `Map()` method, that must get a mapper function. This mapper function gets the latest result of the `Parse()` call, and returns any value that is made out of the raw input result.
+
+The Map() method therefore plays a key role in transforming the raw results -- which are essentially just fragments of the input string -- into a form that is more useful for subsequent processing.
+
+Typically, this operation is used to assemble the nodes of an Abstract Syntax Tree (AST).
+This AST can then be passed on to a further processing routine,
+for example: to output the results in a different representational format than the original (such as JSON or YAML),
+or, in the case of programs, to execute the code directly (interpreter) or to generate executable code from it (compiler).
 
 In the following example the `Integer` parser matches one or more digit characters with the target string and returns with an `int` value.
 The conversion of the result to an integer is done in the `Map()` function of the parser:
@@ -566,6 +578,11 @@ Run [the Chain example](Chain/Chain.go): `go run tutorial/Chain/Chain.go`:
 
 	// => inputString: 'diceroll:2d8', Results: inputString: 'diceroll:2d8', Results: [2 d 8], Index: 12, Err: <nil>, IsError: false, Index: 9, Err: <nil>, IsError: false
 ```
+
+The figure below demonstrates the case, when the input string is `"diceroll:2d8"`, and the `Chain()` parser selects the `dicerollParser()`.
+
+![Chain parser](Chain/Chain.svg)
+
 
 ## Debugging
 
