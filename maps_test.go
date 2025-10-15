@@ -84,6 +84,6 @@ func TestParser_ErrorMap(t *testing.T) {
 		return expectedError
 	}).Parse(&input)
 
-	require.Equal(t, expectedError, newState.Err)
+	require.Equal(t, fmt.Errorf("1:1: %w", expectedError), newState.Err)
 	require.True(t, newState.IsError)
 }

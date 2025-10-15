@@ -17,7 +17,7 @@ type ParserState struct {
 
 // NewParserState creates a new ParserState instance
 func NewParserState(inputString *string, result Result, index int, err error) ParserState {
-	isError := false
+	var isError = false
 	if err != nil {
 		isError = true
 	}
@@ -94,7 +94,8 @@ func updateParserState(state ParserState, index int, result Result) ParserState 
 func updateParserError(state ParserState, errorMsg error) ParserState {
 	newState := state
 	newState.IsError = true
-	newState.Err = errorMsg
+	row, col := newState.IndexRowCol()
+	newState.Err = fmt.Errorf("%d:%d: %w", row, col, errorMsg)
 	if debugLevel > 1 {
 		fmt.Printf("\nERROR: %+v\n", errorMsg)
 	}

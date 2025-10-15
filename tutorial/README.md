@@ -151,7 +151,7 @@ the `Results` property will be `nil`, and the `Index` property remains `0`:
 ```go
 	resultState = parc.Str("Will not match").Parse(&input)
 	fmt.Printf("\n%+v\n", resultState)
-	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Str: could not match 'Will not match' with 'Hello World', IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: Str('Will not match'): could not match 'Will not match' with 'Hello World', IsError: true
 ```
 
 The parc package provides a set of different parsers.
@@ -182,7 +182,7 @@ Run [the Char example](Char/Char.go): `go run tutorial/Char/Char.go`:
 
 	resultState = parc.Char("_").Parse(&input)
 	fmt.Printf("\n%+v\n", resultState)
-	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Could not match '_' with 'Hello World', IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: Char('_'): Could not match '_' with 'Hello World', IsError: true
 ```
 
 Every parser object has an `.As(label string)` member function, that assigns a label to it.
@@ -294,7 +294,7 @@ Run [the CondMin example](CondMin/CondMin.go): `go run tutorial/CondMin/CondMin.
 
 	fmt.Printf("%+v\n", resultState)
 
-	// => inputString: inputString: 'Hello World', Results: <nil>, Index: 0, Err: CondMin: 5 number of found are less then minOccurences: 8, IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: CondMin: 5 number of found are less then minOccurences 8, IsError: true
 ```
 
 Run [the CondMinMax example](CondMin/CondMinMax.go): `go run tutorial/CondMinMax/CondMinMax.go`:
@@ -583,6 +583,61 @@ The figure below demonstrates the case, when the input string is `"diceroll:2d8"
 
 ![Chain parser](Chain/Chain.svg)
 
+
+## Error Handling
+
+If the parser fails to match the expected patterns in the input text, an error occurs, which is captured by the parser's state.
+Parsers include the definition of the error messages.
+
+In the case of combinators, two types of errors are possible:
+
+- Non-consuming Failure:
+
+  If the parser looks at a token, and it doesn't match immediately, it returns without advancing the input stream.
+  This is used in the OR (Choice) combinators to allow the parser to attempt an alternative path.
+  These errors are suppressed (silent failure).
+
+- Consuming Failure (Konzumáló Hiba):
+
+  If the parser looks at a token that matched, but the following token caused an error, it has advanced the input stream before returning with a failure.
+
+  This indicates that the real error occurred at this point.
+  The parser cannot proceed via an alternative path, as it has already "committed" to the faulty path.
+  These errors are reported immediately.
+
+In the latter case, the combinators wrap the messages resulting from the nested parsers with their own additions, and return with that.
+
+The operation calling the parser will ultimately receive the complete error message.
+In order to make it easier to determine the error's location and cause, the parser includes the position (`<line>:<column>:`)
+where the error occurred, as well as the name of the parser that created the error.
+
+For example, a formula parser, when given the faulty input `"(1 + 2) *) 3"`, will return the following error message:
+
+```
+1:1: formula: 1:8: EndOfInput: expect end of input but got ' *) 3'
+```
+
+The built-in, default parser names (e.g., `SequenceOf`, `Choice`, etc.) are not very descriptive,
+therefore, every parser implements an `As(name string)` method, which allows us to give the parsers an alias name, a kind of label.
+
+The [errors/parsers.go](errors/parsers.go) folder shows some examples of how to apply this method to define higher-level parsers.
+
+For example, the following `Choice()` combinator-based parser receives the alias name constant:
+
+```go
+	constant := *parc.Map(parc.Choice(parc.Str("pi"), parc.Str("phi"), parc.Str("e")).As("constant"),
+		func(in parc.Result) parc.Result {
+			return parc.Result(
+				Constant{
+					Tag:  "CONSTANT",
+					Name: in.(string),
+				},
+			)
+		})
+```
+
+In the same folder, the [errors/testcases.go](errors/testcases.go) shows test cases
+which can be used to parse both faultless and faulty input syntaxes.
 
 ## Debugging
 

@@ -60,7 +60,7 @@ var (
 			}
 		}
 		return Result(nil)
-	})
+	}).As("Integer")
 
 	// RealNumber is a parser for a double type real number
 	RealNumber = SequenceOf(Sign, Digits, Char("."), Optional(Digits), Exponent).Map(func(result Result) Result {
@@ -132,7 +132,7 @@ func JoinStrResults(in Result) Result {
 // Ref creates a reference to any value
 // It is useful to define reference values of fixtures in test cases
 func Ref[T any](value T) *T {
-	var v T = value
+	var v = value
 	return &v
 }
 

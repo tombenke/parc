@@ -152,7 +152,7 @@ a `Results` property értéke `nil` lesz, az `Index` property pedig  `0` marad:
 ```go
 	resultState = parc.Str("Will not match").Parse(&input)
 	fmt.Printf("\n%+v\n", resultState)
-	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Str: could not match 'Will not match' with 'Hello World', IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: Str('Will not match'): could not match 'Will not match' with 'Hello World', IsError: true
 ```
 
 A parc package egy csomó, különféle parsert biztosít számunkra.
@@ -182,7 +182,7 @@ Futtassuk [a Char példát](Char/Char.go): `go run tutorial/Char/Char.go`:
 
 	resultState = parc.Char("_").Parse(&input)
 	fmt.Printf("\n%+v\n", resultState)
-	// => inputString: 'Hello World', Results: <nil>, Index: 0, Err: Could not match '_' with 'Hello World', IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: Char('_'): Could not match '_' with 'Hello World', IsError: true
 ```
 
 Minden parser objektum implementál egy `.As(label string)` member function-t, ami egy cimkét rendel hozzá a parserhez.
@@ -296,7 +296,7 @@ Futtassuk [a CondMin példát](CondMin/CondMin.go): `go run tutorial/CondMin/Con
 
 	fmt.Printf("%+v\n", resultState)
 
-	// => inputString: inputString: 'Hello World', Results: <nil>, Index: 0, Err: CondMin: 5 number of found are less then minOccurences: 8, IsError: true
+    // => inputString: 'Hello World', Results: <nil>, Index: 0, Err: 1:1: CondMin: 5 number of found are less then minOccurences 8, IsError: true
 ```
 
 Az első esetben legalább 1 ASCII letter karaktert próbál illeszteni, sikeresen, mert a `Hello` karakterei kielégítik a feltételt, és az illesztés befejeződik az első szóköz, karakternél.
@@ -599,7 +599,65 @@ Az alábbi ábra azt az esetet szemlélteti, amikor az input string `"diceroll:2
 ![Chain parser](Chain/Chain.svg)
 
 
-## Hibakeresés
+## Hibakezelés
+
+Ha a parser nem képes illeszteni az elvárt mintákat a bemenő szövegre, akkor hiba keletkezik, amit a parser állapota rögzít.
+A parserek tartalmazzák a hibaüzenetek definícióját.
+
+A kombinátorok esetében kétféle hiba lehetséges:
+
+- Túlélő Hiba (Non-consuming Failure):
+
+  Ha a parser megnéz egy token-t, és az azonnal nem illeszkedik, és visszatér anélkül, hogy a bemeneti stream-et mozgatta volna.
+  Ezt használják az OR (Choice) kombinátorokban, hogy a parser próbálhasson egy másik lehetséges utat.
+  Ezeket a hibákat elnyomjuk (silent failure).
+    
+- Konzumáló Hiba (Consuming Failure):
+
+  Ha a parser megnéz egy tokent, ami illeszkedett, de a következő token hibát okozott, mozgatta a bemeneti stream-et,
+  mielőtt hibával visszatért volna.
+
+  Ez jelzi, hogy ezen a ponton történt a valódi hiba.
+  A parser nem próbálhat alternatív úton továbbmenni, mivel már "elkötelezte magát" a hibás úton.
+  Ezeket a hibákat azonnal jelentjük.
+
+A kombinátorok az utóbbi esetben a beágyazott parserek által eredményezett üzeneteket becsomagolják (wrapping) a saját kiegészítésükkel,
+és azzal térnek vissza.
+
+A parser-t hívó művelet végül a teljes hibaüzenetet fogja megkapni.
+Annak érdekében, hogy a hiba helyét és okát egyszerűbb legyen meghatározni, a parser elhelyezi azt a pozíciót (`<sor>:<oszlop>:`)
+ahol a hiba előfordult, valamint annak a parsernek a nevét is, ami a hibát létrehozta.
+
+Például egy képlet elemző, a hibás `"(1 + 2) *) 3"` input hatására az alábbi hibaüzenetet fogja visszaadni:
+
+```
+1:1: formula: 1:8: EndOfInput: expect end of input but got ' *) 3'
+```
+
+A beépített, default parser nevek (pl.: `SequenceOf`, `Choice`, stb.) nem túl beszédesek,
+ezért minden parser implementál egy `As(name string)` metódust, amivel a parsereknek adhatunk egy alias nevet, egyfajta cimkét.
+
+Az [errors/parsers.go](errors/parsers.go) folder mutat néhány példát, hogyan lehet, ezt a módszer alkalmazni,
+a magasabb szintű parserek definiálására.
+
+Például az alábbi `Choice()` kombinátor alapú parser a `constant` alias nevet kapja:
+
+```go
+	constant := *parc.Map(parc.Choice(parc.Str("pi"), parc.Str("phi"), parc.Str("e")).As("constant"),
+		func(in parc.Result) parc.Result {
+			return parc.Result(
+				Constant{
+					Tag:  "CONSTANT",
+					Name: in.(string),
+				},
+			)
+		})
+```
+
+Ugyanebben a folderben, az [errors/testcases.go](errors/testcases.go) teszt eseteket mutat be,
+amivel a hibátlan, és hibás szintaxisú inputok parsolását is el lehet végezni.
+
+## Debugging
 
 Magasabb rendű, komplex parserek esetén nem triviális a hibák azonosítása,
 ezért a parc csomag tartalmaz egy beépített hibakeresési (debugging) funkciót.

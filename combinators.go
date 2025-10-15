@@ -17,7 +17,8 @@ func SequenceOf(parsers ...*Parser) *Parser {
 		for _, parser := range parsers {
 			nextState = (*parser).ParserFun(nextState)
 			if nextState.IsError {
-				return updateParserError(parserState, nextState.Err)
+				// TODO: Enrich error message
+				return updateParserError(parserState, fmt.Errorf("%s: %w", newParser.Name(), nextState.Err))
 			}
 			results = slices.Concat(results, []Result{Result(nextState.Results)})
 		}
@@ -54,7 +55,8 @@ func Count(parser *Parser, count int) *Parser {
 			}
 		}
 		if len(results) != count {
-			return updateParserError(parserState, testState.Err)
+			// TODO: Enrich error message
+			return updateParserError(parserState, fmt.Errorf("%s: %w", newParser.Name(), testState.Err))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
@@ -89,7 +91,8 @@ func CountMin(parser *Parser, minOccurences int) *Parser {
 			}
 		}
 		if len(results) < minOccurences {
-			return updateParserError(parserState, testState.Err)
+			// TODO: Enrich error message
+			return updateParserError(parserState, fmt.Errorf("%s: %w", newParser.Name(), testState.Err))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
@@ -124,7 +127,8 @@ func CountMinMax(parser *Parser, minOccurences int, maxOccurences int) *Parser {
 			}
 		}
 		if len(results) < minOccurences {
-			return updateParserError(parserState, testState.Err)
+			// TODO: Enrich error message
+			return updateParserError(parserState, fmt.Errorf("%s: %w", newParser.Name(), testState.Err))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
@@ -208,7 +212,8 @@ func OneOrMore(parser *Parser) *Parser {
 			}
 		}
 		if len(results) == 0 {
-			return updateParserError(parserState, nextState.Err)
+			// TODO: Enrich error message
+			return updateParserError(parserState, fmt.Errorf("%s: %w", newParser.Name(), nextState.Err))
 		}
 		return updateParserState(nextState, nextState.Index, Result(results))
 	}
@@ -231,7 +236,7 @@ func Choice(parsers ...*Parser) *Parser {
 				return nextState
 			}
 		}
-		return updateParserError(parserState, fmt.Errorf("%s: Unable to match with any parser at %s with '%s'", parser.Name(), parserState.IndexPosStr(), parserState.Remaining()))
+		return updateParserError(parserState, fmt.Errorf("%s: Unable to match any with '%s'", parser.Name(), parserState.Remaining()))
 	}
 	parser.SetParserFun(parserFun)
 	return &parser

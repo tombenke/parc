@@ -2,6 +2,8 @@ package parc
 
 import (
 	"fmt"
+	"reflect"
+	"runtime"
 	"unicode/utf8"
 )
 
@@ -75,20 +77,23 @@ func IsAnyChar(r rune) bool {
 // If the condition is met, the rune is consumed from the input and the parser succeeds.
 // Otherwise the parser fails.
 func Cond(conditionFn func(rune) bool) *Parser {
-	parser := Parser{name: "Cond"}
+	fPtr := reflect.ValueOf(conditionFn).Pointer()
+	fn := runtime.FuncForPC(fPtr)
+
+	parser := Parser{name: fmt.Sprintf("Cond('%s')", fn.Name())}
 	parserFun := func(parserState ParserState) ParserState {
 		if parserState.IsError {
 			return parserState
 		}
 
 		if parserState.AtTheEnd() {
-			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input at %s.", parser.Name(), parserState.IndexPosStr()))
+			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input", parser.Name()))
 		}
 
 		// Try to take a single occurence
 		r, nextState := parserState.NextRune()
 		if !conditionFn(r) {
-			return updateParserError(parserState, fmt.Errorf("%s: could not match %c at %s", parser.Name(), r, parserState.IndexPosStr()))
+			return updateParserError(parserState, fmt.Errorf("%s: could not match %c", parser.Name(), r))
 		}
 		return updateParserState(parserState, nextState.Index, Result(string(r)))
 	}
@@ -108,11 +113,11 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 		}
 
 		if parserState.AtTheEnd() && minOccurences > 0 {
-			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input at index %d.", parser.Name(), parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input", parser.Name()))
 		}
 
 		if minOccurences < 0 {
-			return updateParserError(parserState, fmt.Errorf("%s: wrong minOccurences value %d at index %d", parser.Name(), minOccurences, parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("%s: wrong minOccurences value %d", parser.Name(), minOccurences))
 		}
 
 		currentState := parserState
@@ -120,10 +125,7 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 		results := make([]byte, 0, 10)
 
 		// Try to take as many occurences as possible, but at least minOccurences
-		for {
-			if parserState.AtTheEnd() {
-				break
-			}
+		for !parserState.AtTheEnd() {
 
 			r, nextState := currentState.NextRune()
 			if r == utf8.RuneError || parserState.AtTheEnd() || !conditionFn(r) {
@@ -134,7 +136,7 @@ func CondMin(conditionFn func(rune) bool, minOccurences int) *Parser {
 			results = utf8.AppendRune(results, r)
 		}
 		if numFound < minOccurences {
-			return updateParserError(parserState, fmt.Errorf("%s: %d number of found are less then minOccurences: %d at index %d", parser.Name(), numFound, minOccurences, parserState.Index))
+			return updateParserError(parserState, fmt.Errorf("%s: %d number of found are less then minOccurences %d", parser.Name(), numFound, minOccurences))
 		}
 		return updateParserState(parserState, currentState.Index, Result(string(results)))
 	}
@@ -154,11 +156,11 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 		}
 
 		if parserState.AtTheEnd() && minOccurences > 0 {
-			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input at %s.", parser.Name(), parserState.IndexPosStr()))
+			return updateParserError(parserState, fmt.Errorf("%s: got Unexpected end of input", parser.Name()))
 		}
 
 		if minOccurences < 0 || minOccurences > maxOccurences {
-			return updateParserError(parserState, fmt.Errorf("%s: wrong range of occurences min.: %d, max.: %d at %s", parser.Name(), minOccurences, maxOccurences, parserState.IndexPosStr()))
+			return updateParserError(parserState, fmt.Errorf("%s: wrong range of occurences min. %d, max. %d", parser.Name(), minOccurences, maxOccurences))
 		}
 
 		currentState := parserState
@@ -166,10 +168,8 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 		results := make([]byte, 0, 10)
 
 		// Try to take as many occurences as possible, but at least minOccurences
-		for {
-			if numFound >= maxOccurences {
-				break
-			}
+		for numFound < maxOccurences {
+
 			r, nextState := currentState.NextRune()
 			if nextState.IsError || !conditionFn(r) {
 				break
@@ -179,7 +179,7 @@ func CondMinMax(conditionFn func(rune) bool, minOccurences, maxOccurences int) *
 			results = utf8.AppendRune(results, r)
 		}
 		if numFound < minOccurences {
-			return updateParserError(parserState, fmt.Errorf("%s: %d number of found are less then minOccurences: %d at %s", parser.Name(), numFound, minOccurences, parserState.IndexPosStr()))
+			return updateParserError(parserState, fmt.Errorf("%s: %d number of found are less then minOccurences %d", parser.Name(), numFound, minOccurences))
 		}
 		return updateParserState(parserState, currentState.Index, Result(string(results)))
 	}
