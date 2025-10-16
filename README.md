@@ -1,5 +1,9 @@
 # parc
 
+[![Actions Status](https://github.com/tombenke/parc/workflows/ci/badge.svg)](https://github.com/tombenke/parc)
+
+## About
+
 parc is a [Parser Combinator](https://en.wikipedia.org/wiki/Parser_combinator) written in Golang.
 
 It mainly inspired by the [Arcsecond](https://github.com/francisrstokes/arcsecond) library.
