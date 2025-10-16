@@ -27,6 +27,8 @@ Ez a módszer lehetővé teszi, hogy a nyelvtanunkat közvetlenül és deklarat�
 
 A parserek és fordítóprogramok spektrumán a parser kombinátorok a rekurzív leszálló parserek családjába tartoznak.
 
+![parsers](parsers.svg)
+
 - Generált Parserek
   (pl. [Yacc](https://hu.wikipedia.org/wiki/Yacc)/[Bison](https://www.gnu.org/software/bison/), [ANTLR](https://www.antlr.org/)):
   Ezek a leggyorsabbak.

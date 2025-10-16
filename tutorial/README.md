@@ -26,6 +26,9 @@ This method allows us to express our grammar directly and declaratively within o
 
 On the spectrum of parsers and compilers, parser combinators belong to the family of recursive descent parsers.
 
+![parsers](parsers.svg)
+
+
 - Generated Parsers
   (e.g., [Yacc](https://hu.wikipedia.org/wiki/Yacc)/[Bison](https://www.gnu.org/software/bison/), [ANTLR](https://www.antlr.org/)):
   These are the fastest.
